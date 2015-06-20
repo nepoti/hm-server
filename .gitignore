@@ -1,3 +1,4 @@
 .ftpaccess
+.idea
 *.pyc
 *.save*
