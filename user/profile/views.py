@@ -11,13 +11,14 @@ from re import match
 
 @csrf_exempt
 def read(request):
-    if request.method!='POST':
+    if request.method != 'POST':
         raise Http404
     if request.user.is_authenticated():
         if request.user.is_active:
-            return JsonResponse({"status": 1, "result":{"email":request.user.email}, "error": 0})
+            return JsonResponse({"status": 1, "result": {"email": request.user.email}, "error": 0})
         return HttpResponse('{"status": 0, "error": 42}')
     return HttpResponse('{"status": 0, "error": 41}')
+
 
 def update(request):
     raise Http404

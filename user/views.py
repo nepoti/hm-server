@@ -8,18 +8,18 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def remove(request):
-    if request.method!='POST':
+    if request.method != 'POST':
         raise Http404
-    userPass=request.POST.get('password',None)
-    if userPass is None:
+    password = request.POST.get('password', None)
+    if password is None:
         raise Http404
     if request.user.is_authenticated():
         if request.user.is_active:
-            if not request.user.check_password(userPass):
+            if not request.user.check_password(password):
                 return HttpResponse('{"status": 0, "error": 41}')
-            request.user.is_active=False
+            request.user.is_active = False
             request.user.save()
-            logout(request)
+            auth_logout(request)
             return HttpResponse('{"status": 1, "error": 0}')
         return HttpResponse('{"status": 0, "error": 42}')
     return HttpResponse('{"status": 0, "error": 41}')
