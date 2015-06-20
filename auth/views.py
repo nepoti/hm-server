@@ -65,20 +65,6 @@ def logout(request):
     return HttpResponse('')
 
 
-def is_logged_in(request):
-    if request.user.is_authenticated():
-        return HttpResponse('yes')
-    return HttpResponse('no')
-
-
-def temp(request):
-    from django.core.mail import send_mail
-
-    send_mail('Subject here', 'Here is the message.', 'devtest1997@yandex.ru',
-              ['oagromyak@gmail.com'], fail_silently=False)
-    return HttpResponse('no')
-
-
 @csrf_exempt
 def email_change(request):
     if request.method != 'POST':
