@@ -25,8 +25,7 @@ def register(request):
         return username_not_valid
     if User.objects.filter(username=username).exists():
         return username_already_exist
-    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$",
-                 email):
+    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$", email):
         return email_not_valid
     if User.objects.filter(email=email).exists():
         return email_already_exist
@@ -71,11 +70,13 @@ def logout(request):
 @check_method_auth('POST')
 def email_change(request):
     email = request.POST.get('email', None)
-    if email is None:
+    password = request.POST.get('password', None)
+    if password is None or email is None:
         raise Http404
-    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$",
-                         email):
+    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$", email):
         return email_not_valid
+    if not request.user.check_password(password):
+        return auth_error
     request.user.email = email
     request.user.save()
     return status_ok
@@ -85,10 +86,13 @@ def email_change(request):
 @check_method_auth('POST')
 def pass_change(request):
     password = request.POST.get('password', None)
-    if password is None:
+    new_password = request.POST.get('new_password', None)
+    if password is None or new_password is None:
         raise Http404
-    request.user.set_password(password)
+    if not request.user.check_password(password):
+        return auth_error
+    request.user.set_password(new_password)
     request.user.save()
-    user = authenticate(username=request.user.username, password=password)
+    user = authenticate(username=request.user.username, password=new_password)
     auth_login(request, user)
     return status_ok
