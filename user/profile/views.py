@@ -7,18 +7,17 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.csrf import csrf_exempt
 from re import match
+from response.templates import ok_response
+from response.decorators import check_method_auth
 
 
 @csrf_exempt
+@check_method_auth('POST')
 def read(request):
-    if request.method != 'POST':
-        raise Http404
-    if request.user.is_authenticated():
-        if request.user.is_active:
-            return JsonResponse({"status": 1, "result": {"email": request.user.email}, "error": 0})
-        return HttpResponse('{"status": 0, "error": 42}')
-    return HttpResponse('{"status": 0, "error": 41}')
+    return ok_response({"email": request.user.email})
 
 
+@csrf_exempt
+@check_method_auth('POST')
 def update(request):
     raise Http404
