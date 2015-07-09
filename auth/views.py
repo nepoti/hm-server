@@ -11,6 +11,7 @@ from response.templates import auth_error, user_not_active, task_error
 from response.templates import status_ok
 from response.decorators import check_method
 from response.decorators import check_method_auth
+from user.models import UserProfile
 
 
 @csrf_exempt
@@ -30,7 +31,8 @@ def register(request):
     if User.objects.filter(email=email).exists():
         return email_already_exist
     user = User.objects.create_user(username, email, password)
-    if user is None:
+    user_profile = UserProfile.objects.create(user=user, name=user.username, followers=[], following=[])
+    if user is None or user_profile is None:
         return task_error
     return status_ok
 
