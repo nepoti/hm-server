@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     #    'tokenapi',
     'hm',
     'user',
+    'social',
 )
 
 MIDDLEWARE_CLASSES = (
