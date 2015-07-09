@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 
 
 class UserProfile(models.Model):
@@ -12,3 +13,5 @@ class UserProfile(models.Model):
     birthday = models.DateField(blank=True, null=True)
     about = models.CharField(blank=True, default=u'',  max_length=100)
     achievements = models.TextField(default=u'{}')
+    followers = ArrayField(models.IntegerField())
+    following = ArrayField(models.IntegerField())

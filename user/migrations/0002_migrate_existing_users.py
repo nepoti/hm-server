@@ -7,7 +7,7 @@ def create_user_profiles(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     UserProfile = apps.get_model('user', 'UserProfile')
     for user in User.objects.all():
-        user_profile = UserProfile(user=user, name=user.username)
+        user_profile = UserProfile(user=user, name=user.username, followers=[], following=[])
         user_profile.save()
 
 
