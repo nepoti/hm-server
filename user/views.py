@@ -1,13 +1,11 @@
-from django.shortcuts import render
-from django.http import HttpResponse
 from django.http import Http404
+from django.http import QueryDict
 from django.contrib.auth import logout as auth_logout
-from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from response.templates import auth_error
 from response.templates import status_ok
 from response.templates import ok_response
-from response.decorators import check_method_auth
+from response.decorators import check_method_auth, check_methods_auth
 from user.models import UserProfile
 
 
@@ -24,7 +22,34 @@ def remove(request):
     auth_logout(request)
     return status_ok
 
+
 @csrf_exempt
 @check_method_auth('POST')
 def get_posts(request):
-    return ok_response(UserProfile.objects.filter(user=request.user)[0].get_posts())
+    return ok_response(UserProfile.objects.filter(user_id=request.user.id)[0].get_posts())
+
+
+@csrf_exempt
+@check_methods_auth(['POST', 'DELETE'])
+def follow(request):
+    if request.method == 'POST':
+        follow_id = request.POST.get('id', None)
+        if follow_id is None:
+            raise Http404
+        return UserProfile.objects.filter(user_id=request.user.id)[0].follow_add(follow_id)
+    else:  # DELETE
+        follow_id = QueryDict(request.body).get('id', None)
+        if follow_id is None:
+            raise Http404
+        return UserProfile.objects.filter(user_id=request.user.id)[0].follow_remove(follow_id)
+
+@csrf_exempt
+@check_methods_auth(['POST', 'DELETE'])
+def followers(request):
+    if request.method == 'POST':
+        return UserProfile.objects.filter(user_id=request.user.id)[0].get_followers()
+    else:  # DELETE
+        follower_id = QueryDict(request.body).get('id', None)
+        if follower_id is None:
+            raise Http404
+        return UserProfile.objects.filter(user_id=request.user.id)[0].follower_remove(follower_id)

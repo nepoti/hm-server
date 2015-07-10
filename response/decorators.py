@@ -23,3 +23,17 @@ def check_method_auth(method):
             return function(request)
         return wrapper
     return my_decorator
+
+
+def check_methods_auth(methods):
+    def my_decorator(function):
+        def wrapper(request):
+            if request.method not in methods:
+                raise Http404
+            if not request.user.is_authenticated():
+                return auth_error
+            elif not request.user.is_active:
+                return user_not_active
+            return function(request)
+        return wrapper
+    return my_decorator
