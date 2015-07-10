@@ -21,9 +21,9 @@ class UserProfile(models.Model):
     allowed_keys = {'name': 30, 'profile_image': 200, 'gender': 20, 'country': 50, 'city': 200, 'about': 100}
 
     def get_info(self):
-        return {'id': self.id, 'name': self.name, 'profile_image': self.profile_image, 'gender': self.gender,
+        return [{'id': self.id, 'name': self.name, 'profile_image': self.profile_image, 'gender': self.gender,
                 'country': self.country, 'city': self.city, 'birthday': self.birthday, 'about': self.about,
-                'achievements': self.achievements, 'followers': self.followers, 'following': self.following}
+                'achievements': self.achievements, 'followers': self.followers, 'following': self.following}]
 
     def set_info(self, data):
         if type(data) is not dict:
@@ -52,7 +52,7 @@ class UserProfile(models.Model):
         self.save()
         if error:
             return error_response(50, results)
-        return ok_response(results)
+        return ok_response([results])
 
     def set_birthday(self, birthday):
         if len(birthday) != 3:
@@ -105,3 +105,6 @@ class UserProfile(models.Model):
             obj.following.remove(self.id)
             obj.save()
         return True
+
+    def get_posts(self):
+        return list([post.id for post in self.posts.order_by('-timestamp')])

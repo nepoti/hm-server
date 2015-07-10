@@ -1,6 +1,6 @@
 from django.http import Http404
 from django.views.decorators.csrf import csrf_exempt
-from response.templates import ok_response
+from response.templates import ok_response, task_error
 from response.decorators import check_method_auth
 from user.models import UserProfile
 from json import loads
@@ -9,6 +9,12 @@ from json import loads
 @csrf_exempt
 @check_method_auth('POST')
 def read(request):
+    user_id = request.POST.get('id', None)
+    if user_id:
+        try:
+            return ok_response(UserProfile.objects.filter(id=int(user_id))[0].get_info())
+        except:
+            return task_error
     return ok_response(UserProfile.objects.filter(user_id=request.user.id)[0].get_info())
 
 

@@ -6,7 +6,9 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from response.templates import auth_error
 from response.templates import status_ok
+from response.templates import ok_response
 from response.decorators import check_method_auth
+from user.models import UserProfile
 
 
 @csrf_exempt
@@ -21,3 +23,8 @@ def remove(request):
     request.user.save()
     auth_logout(request)
     return status_ok
+
+@csrf_exempt
+@check_method_auth('POST')
+def get_posts(request):
+    return ok_response(UserProfile.objects.filter(user=request.user)[0].get_posts())
