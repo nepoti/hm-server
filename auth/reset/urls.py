@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from . import views
 
-urlpatterns=[
+urlpatterns = [
     url(r'^$', views.reset, name='reset'),
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',
         views.reset_confirm, name='password_reset_confirm'),

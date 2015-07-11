@@ -1,129 +1,100 @@
-from django.http import HttpResponse
-from django.http import HttpResponseForbidden
 from django.http import Http404
-from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
 from django.views.decorators.csrf import csrf_exempt
 from re import match
-
-
-def index(request):
-    #from django.core.servers.basehttp import FileWrapper
-    #response = HttpResponse(FileWrapper(open('/home/hm/auth/test.tar.gz')), content_type='application/x-tar')
-    #response['Content-Disposition'] = 'attachment; filename=test.tar.gz'
-    #return response
-    raise Http404
+from response.templates import username_not_valid, username_already_exist
+from response.templates import email_not_valid, email_already_exist
+from response.templates import auth_error, user_not_active, task_error
+from response.templates import status_ok
+from response.decorators import check_method
+from response.decorators import check_method_auth
+from user.models import UserProfile
 
 
 @csrf_exempt
+@check_method('POST')
 def register(request):
-    if request.method!='POST':
+    username = request.POST.get('username', None)
+    password = request.POST.get('password', None)
+    email = request.POST.get('email', None)
+    if username is None or password is None or email is None:
         raise Http404
-    userName=request.POST.get('username',None)
-    userPass=request.POST.get('password',None)
-    userMail=request.POST.get('email',None)
-    if userName is None or userPass is None or userMail is None:
-        raise Http404
-    if not match("^([a-zA-Z0-9_@\+\.\-]{1,30})$",userName):
-        return HttpResponse('{"status": 0, "error": 11}')
-    if User.objects.filter(username=userName).exists():
-        return HttpResponse('{"status": 0, "error": 12}')
-    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$",userMail):
-        return HttpResponse('{"status": 0, "error": 31}')
-    if User.objects.filter(email=userMail).exists():
-        return HttpResponse('{"status": 0, "error": 32}')
-    user=User.objects.create_user(userName,userMail,userPass)
-    if user is None:
-        return HttpResponse('{"status": 0, "error": 41}')
-    return HttpResponse('{"status": 1, "error": 0}')
+    if not match("^([a-zA-Z0-9_@\+\.\-]{1,30})$", username):
+        return username_not_valid
+    if User.objects.filter(username=username).exists():
+        return username_already_exist
+    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$", email):
+        return email_not_valid
+    if User.objects.filter(email=email).exists():
+        return email_already_exist
+    user = User.objects.create_user(username, email, password)
+    user_profile = UserProfile.objects.create(user=user, name=user.username, followers=[], following=[])
+    if user is None or user_profile is None:
+        return task_error
+    return status_ok
 
 
 @csrf_exempt
+@check_method('POST')
 def login(request):
-    if request.method!='POST':
-        raise Http404
     if request.user.is_authenticated():
-     if request.user.is_active:
-      return JsonResponse({"status": 1, "result": {"email": request.user.email}, "error": 0})
-     return HttpResponse('{"status": 0, "error": 42}')
-    elif request.POST.get('cookies',None)=='true':
-     return HttpResponse('{"status": 0, "error": 41}')
-    userName=request.POST.get('username',None)
-    userPass=request.POST.get('password',None)
-    if userName is None or userPass is None:
+        if request.user.is_active:
+            return status_ok
+        return user_not_active
+    elif request.POST.get('cookies', None) == 'true':
+        return auth_error
+    username = request.POST.get('username', None)
+    password = request.POST.get('password', None)
+    if username is None or password is None:
         raise Http404
-    user = authenticate(username=userName, password=userPass)
+    user = authenticate(username=username, password=password)
     if user is not None:
         if user.is_active:
             auth_login(request, user)
-	    return JsonResponse({"status": 1, "result": {"email": user.email}, "error": 0})
-        else:#disabled
-            return HttpResponse('{"status":0, "error":42}')
-    else:#login/password not valid
-        return HttpResponse('{"status":0, "error":41}')
+            return status_ok
+        else:  # disabled
+            return user_not_active
+    else:  # login/password not valid
+        return auth_error
 
 
+@csrf_exempt
+@check_method('POST')
 def logout(request):
     auth_logout(request)
-    return HttpResponse('')
+    return status_ok
 
-
-def is_logged_in(request):
-    if request.user.is_authenticated():
-    	return HttpResponse('yes')
-    return HttpResponse('no')
-
-
-def temp(request):
-    from django.core.mail import send_mail
-    send_mail('Subject here', 'Here is the message.', 'devtest1997@yandex.ru',
-        ['oagromyak@gmail.com'], fail_silently=False)
-    return HttpResponse('no')
 
 @csrf_exempt
+@check_method_auth('POST')
 def email_change(request):
-    if request.method!='POST':
-     raise Http404
-    userMail=request.POST.get('email',None)
-    if userMail is None:
-     raise Http404
-    if request.user.is_authenticated():
-     if request.user.is_active:
-      if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$",userMail):
-       return HttpResponse('{"status": 0, "error": 31}')
-      request.user.email=userMail
-      request.user.save()
-      return HttpResponse('{"status": 1, "error": 0}')
-     return HttpResponse('{"status": 0, "error": 42}')
-    return HttpResponse('{"status": 0, "error": 41}')
+    email = request.POST.get('email', None)
+    password = request.POST.get('password', None)
+    if password is None or email is None:
+        raise Http404
+    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$", email):
+        return email_not_valid
+    if not request.user.check_password(password):
+        return auth_error
+    request.user.email = email
+    request.user.save()
+    return status_ok
 
 
 @csrf_exempt
-def get_email(request):
-    if request.method!='GET':
-     raise Http404
-    if request.user.is_authenticated():
-     return HttpResponse('{"status": 1, "result": '+request.user.email+', "error": 0}')
-    return HttpResponse('{"status": 0, "result": "", "error": 41}')
-
-
-@csrf_exempt
+@check_method_auth('POST')
 def pass_change(request):
- if request.method!='POST':
-  raise Http404
- userPass=request.POST.get('password',None)
- if userPass is None:
-  raise Http404
- if request.user.is_authenticated():
-  if request.user.is_active:
-   request.user.set_password(userPass)
-   request.user.save()
-   user=authenticate(username=request.user.username,password=userPass)
-   auth_login(request,user)
-   return HttpResponse('{"status": 1, "error": 0}')
-  return HttpResponse('{"status": 0, "error": 42}')
- return HttpResponse('{"status": 0, "error": 41}')
+    password = request.POST.get('password', None)
+    new_password = request.POST.get('new_password', None)
+    if password is None or new_password is None:
+        raise Http404
+    if not request.user.check_password(password):
+        return auth_error
+    request.user.set_password(new_password)
+    request.user.save()
+    user = authenticate(username=request.user.username, password=new_password)
+    auth_login(request, user)
+    return status_ok
