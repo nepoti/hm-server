@@ -7,5 +7,6 @@ urlpatterns = [
     url(r'^remove$', views.remove, name='remove'),
     url(r'^posts$', views.get_posts, name='get_posts'),
     url(r'^follow$', views.follow, name='follow'),
-    url(r'^followers$', views.followers, name='followers')
+    url(r'^followers$', views.followers, name='followers'),
+    url(r'^following$', views.following, name='following'),
 ]

@@ -6,6 +6,10 @@ from response.templates import ok_response, error_response, status_ok
 from datetime import date
 
 
+allowed_keys = {'name': 30, 'profile_image': 200, 'gender': 20, 'country': 50, 'city': 200, 'about': 100}
+limit = 20
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
     name = models.CharField(max_length=30)
@@ -18,12 +22,11 @@ class UserProfile(models.Model):
     achievements = models.TextField(default=u'{}')
     followers = ArrayField(models.IntegerField())
     following = ArrayField(models.IntegerField())
-    allowed_keys = {'name': 30, 'profile_image': 200, 'gender': 20, 'country': 50, 'city': 200, 'about': 100}
 
     def get_info(self):
         return [{'id': self.id, 'name': self.name, 'profile_image': self.profile_image, 'gender': self.gender,
                 'country': self.country, 'city': self.city, 'birthday': self.birthday, 'about': self.about,
-                 'achievements': self.achievements,
+                 'achievements': self.achievements, 'username': self.user.username,
                  'followers': len(self.followers), 'following': len(self.following)}]
 
     def set_info(self, data):
@@ -112,5 +115,42 @@ class UserProfile(models.Model):
             obj.save()
         return status_ok
 
-    def get_followers(self):
-        return ok_response(str(self.followers.all())+str(self.following.all()))
+    def get_followers(self, page=0):
+        count = len(self.followers)
+        response = {'limit': limit, 'page': page, 'count': count}
+        start = page*limit
+        end = start+limit
+        if start >= count:
+            response['data'] = []
+            return ok_response([response])
+        to_search = self.followers[start:end]
+        clauses = ' '.join(['WHEN id=%s THEN %s' % (pk, i) for i, pk in enumerate(to_search)])
+        ordering = 'CASE %s END' % clauses
+        queryset = UserProfile.objects.filter(id__in=to_search)\
+            .extra(select={'ordering': ordering}, order_by=('ordering',))
+        response['data'] = list([{'id': user.id,
+                                  'name': user.name,
+                                  'profile_image': user.profile_image,
+                                  'username': user.user.username}
+                                 for user in queryset])
+        return ok_response([response])
+
+    def get_following(self, page=0):
+        count = len(self.following)
+        response = {'limit': limit, 'page': page, 'count': count}
+        start = page*limit
+        end = start+limit
+        if start >= count:
+            response['data'] = []
+            return ok_response([response])
+        to_search = self.following[start:end]
+        clauses = ' '.join(['WHEN id=%s THEN %s' % (pk, i) for i, pk in enumerate(to_search)])
+        ordering = 'CASE %s END' % clauses
+        queryset = UserProfile.objects.filter(id__in=to_search)\
+            .extra(select={'ordering': ordering}, order_by=('ordering',))
+        response['data'] = list([{'id': user.id,
+                                  'name': user.name,
+                                  'profile_image': user.profile_image,
+                                  'username': user.user.username}
+                                 for user in queryset])
+        return ok_response([response])
