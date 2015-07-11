@@ -7,11 +7,10 @@ from django.views.decorators.csrf import csrf_exempt
 from re import match
 from response.templates import username_not_valid, username_already_exist
 from response.templates import email_not_valid, email_already_exist
-from response.templates import auth_error, user_not_active, task_error
-from response.templates import status_ok
-from response.decorators import check_method
-from response.decorators import check_method_auth
+from response.templates import auth_error, user_not_active, task_error, invalid_data, status_ok
+from response.decorators import check_method, check_method_auth
 from user.models import UserProfile
+from json import loads
 
 
 @csrf_exempt
@@ -70,31 +69,32 @@ def logout(request):
 
 @csrf_exempt
 @check_method_auth('POST')
-def email_change(request):
-    email = request.POST.get('email', None)
+def edit(request):
     password = request.POST.get('password', None)
-    if password is None or email is None:
-        raise Http404
-    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$", email):
-        return email_not_valid
-    if not request.user.check_password(password):
-        return auth_error
-    request.user.email = email
-    request.user.save()
-    return status_ok
-
-
-@csrf_exempt
-@check_method_auth('POST')
-def pass_change(request):
-    password = request.POST.get('password', None)
+    username = request.POST.get('username', None)
     new_password = request.POST.get('new_password', None)
-    if password is None or new_password is None:
+    email = request.POST.get('email', None)
+    if password is None or (username is None and new_password is None and email is None):
         raise Http404
+    if username:
+        if not match("^([a-zA-Z0-9_@\+\.\-]{1,30})$", username):
+            return username_not_valid
+    if email:
+        if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$",
+                     email):
+            return email_not_valid
+        if User.objects.filter(email=email).exists():
+            return email_already_exist
     if not request.user.check_password(password):
         return auth_error
-    request.user.set_password(new_password)
+    if username:
+        request.user.username = username
+    if email:
+        request.user.email = email
+    if new_password:
+        request.user.set_password(new_password)
     request.user.save()
-    user = authenticate(username=request.user.username, password=new_password)
-    auth_login(request, user)
+    if new_password:
+        user = authenticate(username=request.user.username, password=new_password)
+        auth_login(request, user)
     return status_ok
