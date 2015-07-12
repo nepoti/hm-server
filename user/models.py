@@ -24,10 +24,12 @@ class UserProfile(models.Model):
     following = ArrayField(models.IntegerField())
 
     def get_info(self):
+        if not self.user.is_active:
+            return [{'id': self.id, 'name': self.name, 'username': self.user.username, 'is_active': False}]
         return [{'id': self.id, 'name': self.name, 'profile_image': self.profile_image, 'gender': self.gender,
                 'country': self.country, 'city': self.city, 'birthday': self.birthday, 'about': self.about,
-                 'achievements': self.achievements, 'username': self.user.username,
-                 'followers': len(self.followers), 'following': len(self.following)}]
+                 'achievements': self.achievements, 'username': self.user.username, 'is_active': True,
+                 'followers': len(self.followers), 'following': len(self.following), 'posts': 0}]
 
     def set_info(self, data):
         if type(data) is not dict:
