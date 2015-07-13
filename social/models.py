@@ -1,13 +1,117 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from user.models import UserProfile
+from response.templates import invalid_data, access_error, ok_response, status_ok
+
 
 class Post(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(UserProfile, related_name='posts')
-    likes = models.IntegerField(default=0)
-    likes_ids = ArrayField(models.IntegerField())
-    text = models.TextField(blank=True, default=u'')
-    photos = ArrayField(models.URLField())
-    locations = ArrayField(ArrayField(models.FloatField(), size=2))
+    text = models.CharField(blank=True, default=u'', max_length=1000)
+    photos = ArrayField(models.URLField(), max_length=10)
+    locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=10)
 
+    @staticmethod
+    def create(author, text=None, photos=None, locations=None):
+        if text is None and photos is None and locations is None:
+            return invalid_data
+        if text is not None:
+            if type(text) is not unicode:
+                return invalid_data
+            elif len(text) > 1000:
+                return invalid_data
+        else:
+            text = u''
+        if photos is not None:
+            if type(photos) is not list:
+                return invalid_data
+            elif len(photos) > 10:
+                return invalid_data
+            else:
+                for x in photos:
+                    if type(x) != str:
+                        return invalid_data
+                    elif len(x) > 200:
+                        return invalid_data
+        else:
+            photos = []
+        if locations is not None:
+            if type(locations) is not list:
+                return invalid_data
+            elif type(locations) > 10:
+                return invalid_data
+            else:
+                for x in locations:
+                    if type(x) is not list:
+                        return invalid_data
+                    elif len(x) != 2:
+                        return invalid_data
+                    elif x[0] is not float or x[1] is not float:
+                        return invalid_data
+        else:
+            locations = []
+        post = Post(author=author, text=text, photos=photos, locations=locations)
+        post.save()
+        return ok_response([{'id': post.id, 'timestamp': post.timestamp}])
+
+    def edit(self, author, text, photos, locations):
+        if text is None and photos is None and locations is None:
+            return invalid_data
+        if self.author != author:
+            return access_error
+        if text is not None:
+            if type(text) is not unicode:
+                return invalid_data
+            elif len(text) > 1000:
+                return invalid_data
+        if photos is not None:
+            if type(photos) is not list:
+                return invalid_data
+            elif len(photos) > 10:
+                return invalid_data
+            else:
+                for x in photos:
+                    if type(x) != str:
+                        return invalid_data
+                    elif len(x) > 200:
+                        return invalid_data
+        if locations is not None:
+            if type(locations) is not list:
+                return invalid_data
+            elif type(locations) > 10:
+                return invalid_data
+            else:
+                for x in locations:
+                    if type(x) is not list:
+                        return invalid_data
+                    elif len(x) != 2:
+                        return invalid_data
+                    elif x[0] is not float or x[1] is not float:
+                        return invalid_data
+        if text:
+            self.text = text
+        if photos:
+            self.photos = photos
+        if locations:
+            self.locations = locations
+        self.save()
+
+    def remove(self, author):
+        if self.author != author:
+            return access_error
+        self.author.posts.filter(id=self.id).delete()
+        return status_ok
+
+
+class PostLike(models.Model):
+    user = models.ForeignKey(UserProfile)
+    post = models.ForeignKey(Post, related_name='likes')
+
+
+class PostComment(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(UserProfile)
+    text = models.CharField(blank=True, default=u'', max_length=1000)
+    photos = ArrayField(models.URLField(), max_length=10)
+    locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=10)
+    post = models.ForeignKey(Post, related_name='comments')

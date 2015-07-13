@@ -29,7 +29,7 @@ class UserProfile(models.Model):
         return [{'id': self.id, 'name': self.name, 'profile_image': self.profile_image, 'gender': self.gender,
                 'country': self.country, 'city': self.city, 'birthday': self.birthday, 'about': self.about,
                  'achievements': self.achievements, 'username': self.user.username, 'is_active': True,
-                 'followers': len(self.followers), 'following': len(self.following), 'posts': 0}]
+                 'followers': len(self.followers), 'following': len(self.following), 'posts': self.posts.count()}]
 
     def set_info(self, data):
         if type(data) is not dict:
