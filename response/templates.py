@@ -21,6 +21,7 @@ auth_error = error_response(41, [])
 user_not_active = error_response(42, [])
 task_error = error_response(50, [])
 invalid_data = error_response(51, [])
+access_error = error_response(52, [])
 
 
 status_ok = ok_response([])

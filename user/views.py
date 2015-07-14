@@ -20,6 +20,25 @@ def remove(request):
         return auth_error
     request.user.is_active = False
     request.user.save()
+    user_profile = UserProfile.objects.filter(user_id=request.user.id)[0]
+    user_profile.profile_image = ''
+    user_profile.gender = ''
+    user_profile.country = ''
+    user_profile.city = ''
+    user_profile.birthday = None
+    user_profile.about = ''
+    user_profile.achievements = ''
+    for follower in user_profile.followers:
+        obj = UserProfile.objects.filter(id=follower)[0]
+        if user_profile.id in obj.following:
+            obj.following.remove(user_profile.id)
+    for following in user_profile.following:
+        obj = UserProfile.objects.filter(id=following)[0]
+        if user_profile.id in obj.followers:
+            obj.followers.remove(user_profile.id)
+    user_profile.followers = []
+    user_profile.following = []
+    user_profile.save()
     auth_logout(request)
     return status_ok
 
