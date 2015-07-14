@@ -12,6 +12,15 @@ class Post(models.Model):
     locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=10)
 
     @staticmethod
+    def get_post(post_id):
+        q = Post.objects.filter(id=post_id)
+        if not q.exists():
+            return invalid_data
+        q = q[0]
+        return ok_response([{'id': q.id, 'timestamp': q.timestamp, 'author': q.author.id,
+                             'text': q.text, 'photos': q.photos, 'locations': q.locations}])
+
+    @staticmethod
     def create(author, text=None, photos=None, locations=None):
         if text is None and photos is None and locations is None:
             return invalid_data

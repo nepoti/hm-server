@@ -1,7 +1,7 @@
 from django.http import Http404
 from django.http import QueryDict
 from django.views.decorators.csrf import csrf_exempt
-from response.decorators import check_methods_auth
+from response.decorators import check_method_auth, check_methods_auth
 from response.templates import invalid_data
 from social.models import Post
 from user.models import UserProfile
@@ -41,3 +41,12 @@ def proceed(request):
         except:
             return invalid_data
         return post.remove(author)
+
+
+@csrf_exempt
+@check_method_auth('POST')
+def get_post(request):
+    post_id = request.POST.get('id', None)
+    if post_id is None:
+        raise Http404
+    return Post.get_post(post_id)
