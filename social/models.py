@@ -18,7 +18,7 @@ class Post(models.Model):
             return invalid_data
         q = q[0]
         return ok_response([{'id': q.id, 'timestamp': q.timestamp, 'author': q.author.id,
-                             'text': q.text, 'photos': q.photos, 'locations': q.locations,
+                             'text': q.text, 'photos': q.photos, 'locations': q.locations, 'likes': q.likes.count(),
                              'comments': q.comments.count()}])
 
     @staticmethod
@@ -129,7 +129,7 @@ class PostComment(models.Model):
             return invalid_data
         q = q[0]
         return ok_response([{'id': q.id, 'timestamp': q.timestamp, 'post': q.post.id, 'author': q.author.id,
-                             'text': q.text, 'photos': q.photos, 'locations': q.locations}])
+                             'text': q.text, 'photos': q.photos, 'locations': q.locations, 'likes': q.likes.count()}])
 
     @staticmethod
     def create(post, author, text, photos, locations):
@@ -227,3 +227,8 @@ class PostComment(models.Model):
 class PostLike(models.Model):
     user = models.ForeignKey(UserProfile)
     post = models.ForeignKey(Post, related_name='likes')
+
+
+class CommentLike(models.Model):
+    user = models.ForeignKey(UserProfile)
+    comment = models.ForeignKey(PostComment, related_name='likes')
