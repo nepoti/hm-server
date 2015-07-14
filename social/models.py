@@ -48,6 +48,33 @@ class Post(models.Model):
         return ok_response([response])
 
     @staticmethod
+    def get_comments(post_id, page=0):
+        q = Post.objects.filter(id=post_id)
+        if not q.exists():
+            return invalid_data
+        q = q[0]
+        count = q.comments.count()
+        response = {'limit': limit, 'page': page, 'count': count}
+        start = page*limit
+        end = start+limit
+        if start >= count:
+            response['data'] = []
+            return ok_response([response])
+        queryset = q.comments.all()[start:end]
+        response['data'] = list([{'id': comment.id,
+                                  'timestamp': comment.timestamp,
+                                  'author_id': comment.author.id,
+                                  'author_name': comment.author.name,
+                                  'author_username': comment.author.user.username,
+                                  'author_profile_image': comment.author.profile_image,
+                                  'text': comment.text,
+                                  'photos': comment.photos,
+                                  'locations': comment.locations,
+                                  'likes': comment.likes.count()}
+                                 for comment in queryset])
+        return ok_response([response])
+
+    @staticmethod
     def like_post(post_id, user, add):
         # add: true - add like, false - remove like
         post = Post.objects.filter(id=post_id)

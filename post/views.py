@@ -124,3 +124,16 @@ def get_comment(request):
     if comment_id is None:
         raise Http404
     return PostComment.get_comment(comment_id)
+
+
+@csrf_exempt
+@check_method_auth('POST')
+def get_comments(request):
+    post_id = request.POST.get('id', None)
+    page = request.POST.get('page', 0)
+    try:
+        post_id = int(post_id)
+        page = int(page)
+        return Post.get_comments(post_id, page)
+    except:
+        return invalid_data
