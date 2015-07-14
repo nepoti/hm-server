@@ -101,4 +101,4 @@ def get_comment(request):
     comment_id = request.POST.get('id', None)
     if comment_id is None:
         raise Http404
-    return PostComment.get_post(comment_id)
+    return PostComment.get_comment(comment_id)

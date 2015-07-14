@@ -123,8 +123,8 @@ class PostComment(models.Model):
     post = models.ForeignKey(Post, related_name='comments')
 
     @staticmethod
-    def get_comment(post_id):
-        q = PostComment.objects.filter(id=post_id)
+    def get_comment(comment_id):
+        q = PostComment.objects.filter(id=comment_id)
         if not q.exists():
             return invalid_data
         q = q[0]
@@ -172,8 +172,7 @@ class PostComment(models.Model):
             locations = []
         comment = PostComment(post=post, author=author, text=text, photos=photos, locations=locations)
         comment.save()
-        return ok_response([{'post': post.id, 'author': author.id,
-                             'text': text, 'photos': photos, 'locations': locations}])
+        return ok_response([{'id': comment.id, 'timestamp': comment.timestamp}])
 
     def edit(self, author, text, photos, locations):
         if text is None and photos is None and locations is None:
@@ -219,7 +218,7 @@ class PostComment(models.Model):
         return status_ok
 
     def remove(self, author):
-        if self.author != author:
+        if self.author != author and self.post.author != author:
             return access_error
         self.post.comments.filter(id=self.id)[0].delete()
         return status_ok
