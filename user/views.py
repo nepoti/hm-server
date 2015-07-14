@@ -68,8 +68,8 @@ def follow(request):
 @check_methods_auth(['POST', 'DELETE'])
 def followers(request):
     if request.method == 'POST':
-        user_id = request.POST.get('id', None) or request.user.id
-        page = request.POST.get('page', None) or 0
+        user_id = request.POST.get('id', request.user.id)
+        page = request.POST.get('page', 0)
         try:
             user_id = int(user_id)
             page = int(page)
@@ -83,11 +83,12 @@ def followers(request):
             raise Http404
         return UserProfile.objects.filter(user_id=request.user.id)[0].follower_remove(follower_id)
 
+
 @csrf_exempt
 @check_method_auth('POST')
 def following(request):
-    user_id = request.POST.get('id', None) or request.user.id
-    page = request.POST.get('page', None) or 0
+    user_id = request.POST.get('id', request.user.id)
+    page = request.POST.get('page', 0)
     try:
         user_id = int(user_id)
         page = int(page)

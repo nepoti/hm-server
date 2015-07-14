@@ -55,6 +55,28 @@ def get_post(request):
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
+def like_post(request):
+    post_id = QueryDict(request.body).get('id', None)
+    if post_id is None:
+        raise Http404
+    return Post.like_post(post_id, UserProfile.objects.filter(user_id=request.user.id)[0], request.method == 'POST')
+
+
+@csrf_exempt
+@check_method_auth('POST')
+def get_likes(request):
+    post_id = request.POST.get('id', None)
+    page = request.POST.get('page', 0)
+    try:
+        post_id = int(post_id)
+        page = int(page)
+        return Post.get_likes(post_id, page)
+    except:
+        return invalid_data
+
+
+@csrf_exempt
+@check_methods_auth(['POST', 'DELETE'])
 def proceed_comment(request):
     author = UserProfile.objects.filter(user_id=request.user.id)[0]
     if request.method == 'POST':

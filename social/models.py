@@ -3,6 +3,8 @@ from django.contrib.postgres.fields import ArrayField
 from user.models import UserProfile
 from response.templates import invalid_data, access_error, ok_response, status_ok
 
+limit = 10
+
 
 class Post(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -10,6 +12,9 @@ class Post(models.Model):
     text = models.CharField(blank=True, default=u'', max_length=1000)
     photos = ArrayField(models.URLField(), max_length=10)
     locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=10)
+
+    class Meta:
+        ordering = ['-timestamp']
 
     @staticmethod
     def get_post(post_id):
@@ -20,6 +25,43 @@ class Post(models.Model):
         return ok_response([{'id': q.id, 'timestamp': q.timestamp, 'author': q.author.id,
                              'text': q.text, 'photos': q.photos, 'locations': q.locations, 'likes': q.likes.count(),
                              'comments': q.comments.count()}])
+
+    @staticmethod
+    def get_likes(post_id, page=0):
+        q = Post.objects.filter(id=post_id)
+        if not q.exists():
+            return invalid_data
+        q = q[0]
+        count = q.likes.count()
+        response = {'limit': limit, 'page': page, 'count': count}
+        start = page*limit
+        end = start+limit
+        if start >= count:
+            response['data'] = []
+            return ok_response([response])
+        queryset = q.likes.all()[start:end]
+        response['data'] = list([{'id': like.user.id,
+                                  'name': like.user.name,
+                                  'profile_image': like.user.profile_image,
+                                  'username': like.user.user.username}
+                                 for like in queryset])
+        return ok_response([response])
+
+    @staticmethod
+    def like_post(post_id, user, add):
+        # add: true - add like, false - remove like
+        post = Post.objects.filter(id=post_id)
+        if not post.exists():
+            return invalid_data
+        post = post[0]
+        temp = post.likes.filter(user_id=user.id)
+        is_in = temp.exists()
+        if add and not is_in:
+            like = PostLike(user=user, post=post)
+            like.save()
+        elif not add and is_in:
+            temp.delete()
+        return ok_response([{'likes': post.likes.count()}])
 
     @staticmethod
     def create(author, text=None, photos=None, locations=None):
@@ -122,6 +164,9 @@ class PostComment(models.Model):
     photos = ArrayField(models.URLField(), max_length=10)
     locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=10)
     post = models.ForeignKey(Post, related_name='comments')
+
+    class Meta:
+        ordering = ['timestamp']
 
     @staticmethod
     def get_comment(comment_id):
@@ -228,8 +273,16 @@ class PostComment(models.Model):
 class PostLike(models.Model):
     user = models.ForeignKey(UserProfile)
     post = models.ForeignKey(Post, related_name='likes')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['timestamp']
 
 
 class CommentLike(models.Model):
     user = models.ForeignKey(UserProfile)
     comment = models.ForeignKey(PostComment, related_name='likes')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['timestamp']
