@@ -29,7 +29,7 @@ class Post(models.Model):
                 return invalid_data
             else:
                 for x in photos:
-                    if type(x) != str:
+                    if type(x) != unicode:
                         return invalid_data
                     elif len(x) > 200:
                         return invalid_data
@@ -38,7 +38,7 @@ class Post(models.Model):
         if locations is not None:
             if type(locations) is not list:
                 return invalid_data
-            elif type(locations) > 10:
+            elif len(locations) > 10:
                 return invalid_data
             else:
                 for x in locations:
@@ -46,7 +46,7 @@ class Post(models.Model):
                         return invalid_data
                     elif len(x) != 2:
                         return invalid_data
-                    elif x[0] is not float or x[1] is not float:
+                    elif type(x[0]) is not float or type(x[1]) is not float:
                         return invalid_data
         else:
             locations = []
@@ -71,14 +71,14 @@ class Post(models.Model):
                 return invalid_data
             else:
                 for x in photos:
-                    if type(x) != str:
+                    if type(x) != unicode:
                         return invalid_data
                     elif len(x) > 200:
                         return invalid_data
         if locations is not None:
             if type(locations) is not list:
                 return invalid_data
-            elif type(locations) > 10:
+            elif len(locations) > 10:
                 return invalid_data
             else:
                 for x in locations:
@@ -86,7 +86,7 @@ class Post(models.Model):
                         return invalid_data
                     elif len(x) != 2:
                         return invalid_data
-                    elif x[0] is not float or x[1] is not float:
+                    elif type(x[0]) is not float or type(x[1]) is not float:
                         return invalid_data
         if text:
             self.text = text
@@ -95,6 +95,7 @@ class Post(models.Model):
         if locations:
             self.locations = locations
         self.save()
+        return status_ok
 
     def remove(self, author):
         if self.author != author:

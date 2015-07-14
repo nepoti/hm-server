@@ -5,17 +5,26 @@ from response.decorators import check_methods_auth
 from response.templates import invalid_data
 from social.models import Post
 from user.models import UserProfile
+from json import loads
 
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 def proceed(request):
     author = UserProfile.objects.filter(user_id=request.user.id)[0]
-    if request.type == 'POST':
+    if request.method == 'POST':
         id = request.POST.get('id', None)
-        text = request.POST.get('text', None)
-        photos = request.POST.get('photos', None)
-        locations = request.POST.get('locations', None)
+        data = request.POST.get('data', None)
+        if data:
+            try:
+                data = loads(data)
+            except:
+                return invalid_data
+        else:
+            return invalid_data
+        text = data.get('text', None) or None
+        photos = data.get('photos', None) or None
+        locations = data.get('locations', None) or None
         if id:
             try:
                 post = Post.objects.filter(id=id)[0]
