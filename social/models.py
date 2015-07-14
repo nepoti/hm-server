@@ -110,6 +110,7 @@ class Post(models.Model):
     def remove(self, author):
         if self.author != author:
             return access_error
+        self.comments.delete()
         self.author.posts.filter(id=self.id)[0].delete()
         return status_ok
 
