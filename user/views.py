@@ -46,7 +46,18 @@ def remove(request):
 @csrf_exempt
 @check_method_auth('POST')
 def get_posts(request):
-    return ok_response(UserProfile.objects.filter(user_id=request.user.id)[0].get_posts())
+    user_id = request.POST.get('id', request.user.id)
+    page = request.POST.get('page', 0)
+    limit = request.POST.get('limit', 10)
+    try:
+        user_id = int(user_id)
+        page = int(page)
+        limit = int(limit)
+        if limit > 10 or limit < 1:
+            limit = 10
+    except:
+        return invalid_data
+    return UserProfile.objects.filter(user_id=user_id)[0].get_posts(page, limit)
 
 
 @csrf_exempt

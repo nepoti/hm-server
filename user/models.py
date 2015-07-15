@@ -66,9 +66,6 @@ class UserProfile(models.Model):
         self.birthday = obj
         return True
 
-    def get_posts(self):
-        return list([post.id for post in self.posts.order_by('-timestamp')])
-
     def follow_add(self, follow_id):
         try:
             follow_id = int(follow_id)
@@ -116,6 +113,21 @@ class UserProfile(models.Model):
             obj.following.remove(self.id)
             obj.save()
         return status_ok
+
+    def get_posts(self, page=0, limit=10):
+        count = self.posts.count()
+        response = {'limit': limit, 'page': page, 'count': count}
+        start = page*limit
+        end = start+limit
+        if start >= count:
+            response['data'] = []
+            return ok_response([response])
+        queryset = self.posts.all()[start:end]
+        response['data'] = list([{'id': post.id, 'timestamp': post.timestamp, 'author': post.author.id,
+                                  'text': post.text, 'photos': post.photos, 'locations': post.locations,
+                                  'likes': post.likes.count(), 'comments': post.comments.count()}
+                                 for post in queryset])
+        return ok_response([response])
 
     def get_followers(self, page=0):
         count = len(self.followers)
