@@ -46,18 +46,20 @@ def remove(request):
 @csrf_exempt
 @check_method_auth('POST')
 def get_posts(request):
-    user_id = request.POST.get('id', request.user.id)
+    user_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
     limit = request.POST.get('limit', 10)
     try:
-        user_id = int(user_id)
         page = int(page)
         limit = int(limit)
         if limit > 10 or limit < 1:
             limit = 10
+        if user_id:
+            return UserProfile.objects.filter(id=int(user_id))[0].get_posts(page, limit)
+        else:
+            return UserProfile.objects.filter(user_id=request.user.id)[0].get_posts(page, limit)
     except:
         return invalid_data
-    return UserProfile.objects.filter(user_id=user_id)[0].get_posts(page, limit)
 
 
 @csrf_exempt
@@ -79,12 +81,14 @@ def follow(request):
 @check_methods_auth(['POST', 'DELETE'])
 def followers(request):
     if request.method == 'POST':
-        user_id = request.POST.get('id', request.user.id)
+        user_id = request.POST.get('id', None)
         page = request.POST.get('page', 0)
         try:
-            user_id = int(user_id)
             page = int(page)
-            return UserProfile.objects.filter(user_id=user_id)[0].get_followers(page)
+            if user_id:
+                return UserProfile.objects.filter(id=int(user_id))[0].get_followers(page)
+            else:
+                return UserProfile.objects.filter(user_id=request.user.id)[0].get_followers(page)
         except:
             return invalid_data
 
@@ -98,11 +102,13 @@ def followers(request):
 @csrf_exempt
 @check_method_auth('POST')
 def following(request):
-    user_id = request.POST.get('id', request.user.id)
+    user_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
     try:
-        user_id = int(user_id)
         page = int(page)
-        return UserProfile.objects.filter(user_id=user_id)[0].get_following(page)
+        if user_id:
+            return UserProfile.objects.filter(id=int(user_id))[0].get_following(page)
+        else:
+            return UserProfile.objects.filter(user_id=request.user.id)[0].get_following(page)
     except:
         return invalid_data
