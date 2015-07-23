@@ -1,13 +1,13 @@
-from django.http import Http404
-from django.http import QueryDict
+from django.http import Http404, QueryDict
 from django.contrib.auth import logout as auth_logout
 from django.views.decorators.csrf import csrf_exempt
-from response.templates import auth_error
-from response.templates import status_ok
-from response.templates import ok_response
-from response.templates import invalid_data
+from response.templates import auth_error, status_ok, ok_response, invalid_data, task_error
 from response.decorators import check_method_auth, check_methods_auth
 from user.models import UserProfile
+from social.models import UploadUrl
+from boto3 import client
+from hashlib import sha512
+from os import urandom
 
 
 @csrf_exempt
@@ -112,3 +112,34 @@ def following(request):
             return UserProfile.objects.filter(user_id=request.user.id)[0].get_following(page)
     except:
         return invalid_data
+
+
+client = client('s3')
+
+
+def new_upload_url():
+    try:
+        exists = True
+        i = 0
+        while exists:
+            key = sha512(urandom(32).encode('base_64')).hexdigest()+'.jpg'
+            exists = UploadUrl.objects.filter(url=key).exists()
+            i += 1
+            if i == 10:
+                return None
+        return client.generate_presigned_url('put_object', Params={'Bucket': 'thehealthme', 'Key': key,
+                                                                   'ContentType': 'image/jpg'})
+    except:
+        return None
+
+
+@csrf_exempt
+@check_method_auth('POST')
+def imgupload(request):
+    url = new_upload_url()
+    if url:
+        obj = UploadUrl(url=url)
+        obj.save()
+        return ok_response([url])
+    else:
+        return task_error

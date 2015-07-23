@@ -313,3 +313,8 @@ class CommentLike(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+
+
+class UploadUrl(models.Model):
+    url = models.TextField()
+    models = models.DateTimeField(auto_now_add=True)
