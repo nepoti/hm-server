@@ -128,7 +128,7 @@ def new_upload_url():
             if i == 10:
                 return None
         return client.generate_presigned_url('put_object', Params={'Bucket': 'thehealthme', 'Key': key,
-                                                                   'ContentType': 'image/jpg'})
+                                                                   'ContentType': 'image/jpeg'})
     except:
         return None
 
