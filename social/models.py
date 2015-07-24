@@ -316,5 +316,5 @@ class CommentLike(models.Model):
 
 
 class UploadUrl(models.Model):
-    url = models.TextField()
-    models = models.DateTimeField(auto_now_add=True)
+    key = models.CharField(max_length=64)
+    timestamp = models.DateTimeField(auto_now_add=True)

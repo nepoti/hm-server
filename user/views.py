@@ -5,9 +5,11 @@ from response.templates import auth_error, status_ok, ok_response, invalid_data,
 from response.decorators import check_method_auth, check_methods_auth
 from user.models import UserProfile
 from social.models import UploadUrl
-from boto3 import client
-from hashlib import sha512
+from boto import s3
+from hashlib import sha256
 from os import urandom
+
+max_size = 5*1024*1024
 
 
 @csrf_exempt
@@ -114,31 +116,38 @@ def following(request):
         return invalid_data
 
 
-client = client('s3')
+client = s3.connect_to_region('eu-central-1', host='s3.eu-central-1.amazonaws.com')
 
 
-def new_upload_url():
+def new_upload_url(length):
     try:
         exists = True
         i = 0
         while exists:
-            key = sha512(urandom(32).encode('base_64')).hexdigest()+'.jpg'
-            exists = UploadUrl.objects.filter(url=key).exists()
+            key = sha256(urandom(32).encode('base_64')).hexdigest()
+            exists = UploadUrl.objects.filter(key=key).exists()
             i += 1
             if i == 10:
                 return None
-        return client.generate_presigned_url('put_object', Params={'Bucket': 'thehealthme', 'Key': key,
-                                                                   'ContentType': 'image/jpeg'})
+        return [key,
+                client.generate_url_sigv4(3600, 'PUT', 'thehealthme', key + '.jpg',
+                                          headers={'Content-Type': 'image/jpeg', 'Content-Length': length})]
     except:
-        return None
+        return [None, None]
 
 
 @csrf_exempt
 @check_method_auth('POST')
 def imgupload(request):
-    url = new_upload_url()
+    try:
+        length = int(request.POST.get('length', None))
+    except:
+        return invalid_data
+    if length > max_size:
+        return invalid_data
+    key, url = new_upload_url(length)
     if url:
-        obj = UploadUrl(url=url)
+        obj = UploadUrl(key=key)
         obj.save()
         return ok_response([url])
     else:

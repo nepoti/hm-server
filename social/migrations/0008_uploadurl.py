@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
             name='UploadUrl',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('url', models.TextField()),
-                ('models', models.DateTimeField(auto_now_add=True)),
+                ('key', models.CharField(max_length=64)),
+                ('timestamp', models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]
