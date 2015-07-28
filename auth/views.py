@@ -39,12 +39,13 @@ def register(request):
 @csrf_exempt
 @check_method('POST')
 def login(request):
-    if request.user.is_authenticated():
-        if request.user.is_active:
-            return status_ok
-        return user_not_active
-    elif request.POST.get('cookies', None) == 'true':
-        return auth_error
+    if request.POST.get('cookies', None) == 'true':
+        if request.user.is_authenticated():
+            if request.user.is_active:
+                return status_ok
+            return user_not_active
+        else:
+            return auth_error
     username = request.POST.get('username', None)
     password = request.POST.get('password', None)
     if username is None or password is None:
