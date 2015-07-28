@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.postgres',
     #    'tokenapi',
     'hm',
+    'auth',
     'user',
     'social',
 )
