@@ -9,12 +9,16 @@ from json import loads
 @csrf_exempt
 @check_method_auth('POST')
 def read(request):
-    user_id = request.POST.get('id', None) or request.user.id
+    user_id = request.POST.get('id', None)
     try:
-        user_id = int(user_id)
+        if user_id:
+            user_id = int(user_id)
+            return ok_response(UserProfile.objects.filter(id=user_id)[0].get_info())
+        else:
+            user_id = request.user.id
+            return ok_response(UserProfile.objects.filter(user_id=user_id)[0].get_info())
     except:
         return invalid_data
-    return ok_response(UserProfile.objects.filter(user_id=user_id)[0].get_info())
 
 
 @csrf_exempt

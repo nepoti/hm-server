@@ -37,10 +37,10 @@ class UserProfile(models.Model):
         results = {}
         error = False
         for key in data:
-            if key in self.allowed_keys and type(key) is unicode:
+            if key in allowed_keys and type(key) is unicode:
                 if type(data[key]) is not unicode:
                     results[key] = False
-                elif len(data[key]) > self.allowed_keys[key]:
+                elif len(data[key]) > allowed_keys[key]:
                     results[key] = False
                 else:
                     setattr(self, key, data[key])
@@ -53,14 +53,20 @@ class UserProfile(models.Model):
                 error = True
         self.save()
         if error:
-            return error_response(50, results)
+            return error_response(50, [results])
         return ok_response([results])
 
     def set_birthday(self, birthday):
-        if len(birthday) != 3:
+        if type(birthday) is not list:
+            return False
+        length = len(birthday)
+        if length != 3 and length != 0:
             return False
         try:
-            obj = date(int(birthday[0]), int(birthday[1]), int(birthday[2]))
+            if length == 3:
+                obj = date(int(birthday[0]), int(birthday[1]), int(birthday[2]))
+            else:  # length == 1
+                obj = None
         except:
             return False
         self.birthday = obj
