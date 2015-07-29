@@ -80,6 +80,8 @@ def edit(request):
     if username:
         if not match("^([a-zA-Z0-9_@\+\.\-]{1,30})$", username):
             return username_not_valid
+        if User.objects.filter(username=username).exists():
+            return username_already_exist
     if email:
         if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$",
                      email):
