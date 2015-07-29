@@ -29,7 +29,7 @@ def remove(request):
     user_profile.city = ''
     user_profile.birthday = None
     user_profile.about = ''
-    user_profile.achievements = ''
+    user_profile.achievements = '{}'
     for follower in user_profile.followers:
         obj = UserProfile.objects.filter(id=follower)[0]
         if user_profile.id in obj.following:
