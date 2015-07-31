@@ -87,13 +87,14 @@ def followers(request):
         page = request.POST.get('page', 0)
         try:
             page = int(page)
+            if page < 0:
+                return invalid_data
             if user_id:
                 return UserProfile.objects.filter(id=int(user_id))[0].get_followers(page)
             else:
                 return UserProfile.objects.filter(user_id=request.user.id)[0].get_followers(page)
         except:
             return invalid_data
-
     else:  # DELETE
         follower_id = QueryDict(request.body).get('id', None)
         if follower_id is None:
@@ -108,6 +109,8 @@ def following(request):
     page = request.POST.get('page', 0)
     try:
         page = int(page)
+        if page < 0:
+                return invalid_data
         if user_id:
             return UserProfile.objects.filter(id=int(user_id))[0].get_following(page)
         else:
