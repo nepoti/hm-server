@@ -20,13 +20,13 @@ class UserGetPosts(TestCase):
         url = '/user/posts'
         c = self.client
 
-        response = c.post(url, {'id': 'a'})
+        response = c.post(url, {'id': -1})
         self.assertEqual(response.content, invalid_data.content)
 
-        response = c.post(url, {'page': 'a'})
+        response = c.post(url, {'page': -1})
         self.assertEqual(response.content, invalid_data.content)
 
-        response = c.post(url, {'limit': 'a'})
+        response = c.post(url, {'limit': -1})
         self.assertEqual(response.content, invalid_data.content)
 
     def test_current_user(self):

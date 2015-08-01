@@ -54,7 +54,9 @@ def get_posts(request):
     try:
         page = int(page)
         limit = int(limit)
-        if limit > 10 or limit < 1:
+        if page < 0 or limit < 0:
+            return invalid_data
+        if limit > 10:
             limit = 10
         if user_id:
             return UserProfile.objects.filter(id=int(user_id))[0].get_posts(page, limit)
