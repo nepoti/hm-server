@@ -46,7 +46,7 @@ def get_posts(request):
     try:
         page = int(page)
         limit = int(limit)
-        if page < 0 or limit < 0:
+        if page < 0 or limit < 1:
             return invalid_data
         if limit > 10:
             limit = 10
@@ -79,14 +79,18 @@ def followers(request):
     if request.method == 'POST':
         user_id = request.POST.get('id', None)
         page = request.POST.get('page', 0)
+        limit = request.POST.get('limit', 20)
         try:
             page = int(page)
-            if page < 0:
+            limit = int(limit)
+            if page < 0 or limit < 1:
                 return invalid_data
+            if limit > 20:
+                limit = 20
             if user_id:
-                return UserProfile.objects.filter(id=int(user_id))[0].get_followers(page)
+                return UserProfile.objects.filter(id=int(user_id))[0].get_followers(page, limit)
             else:
-                return UserProfile.objects.filter(user_id=request.user.id)[0].get_followers(page)
+                return UserProfile.objects.filter(user_id=request.user.id)[0].get_followers(page, limit)
         except:
             return invalid_data
     else:  # DELETE
@@ -101,14 +105,20 @@ def followers(request):
 def following(request):
     user_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
+    limit = request.POST.get('limit', 20)
     try:
         page = int(page)
         if page < 0:
                 return invalid_data
+        limit = int(limit)
+        if page < 0 or limit < 1:
+            return invalid_data
+        if limit > 20:
+            limit = 20
         if user_id:
-            return UserProfile.objects.filter(id=int(user_id))[0].get_following(page)
+            return UserProfile.objects.filter(id=int(user_id))[0].get_following(page, limit)
         else:
-            return UserProfile.objects.filter(user_id=request.user.id)[0].get_following(page)
+            return UserProfile.objects.filter(user_id=request.user.id)[0].get_following(page, limit)
     except:
         return invalid_data
 

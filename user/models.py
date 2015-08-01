@@ -120,7 +120,7 @@ class UserProfile(models.Model):
                                  for post in queryset])
         return ok_response([response])
 
-    def get_followers(self, page=0):
+    def get_followers(self, page=0, limit=10):
         count = self.followers.count()
         response = {'limit': limit, 'page': page, 'count': count}
         start = page*limit
@@ -137,7 +137,7 @@ class UserProfile(models.Model):
                                  for user in queryset])
         return ok_response([response])
 
-    def get_following(self, page=0):
+    def get_following(self, page=0, limit=10):
         count = self.following.count()
         response = {'limit': limit, 'page': page, 'count': count}
         start = page*limit

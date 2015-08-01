@@ -27,7 +27,7 @@ class Post(models.Model):
                              'comments': q.comments.count()}])
 
     @staticmethod
-    def get_likes(post_id, page=0):
+    def get_likes(post_id, page=0, limit=10):
         q = Post.objects.filter(id=post_id)
         if not q.exists():
             return invalid_data
@@ -48,7 +48,7 @@ class Post(models.Model):
         return ok_response([response])
 
     @staticmethod
-    def get_comments(post_id, page=0):
+    def get_comments(post_id, page=0, limit=10):
         q = Post.objects.filter(id=post_id)
         if not q.exists():
             return invalid_data
