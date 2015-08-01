@@ -67,10 +67,16 @@ def like_post(request):
 def get_likes(request):
     post_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
+    limit = request.POST.get('limit', 10)
     try:
         post_id = int(post_id)
         page = int(page)
-        return Post.get_likes(post_id, page)
+        limit = int(limit)
+        if page < 0 or limit < 1:
+            return invalid_data
+        if limit > 10:
+            limit = 10
+        return Post.get_likes(post_id, page, limit)
     except:
         return invalid_data
 
@@ -131,9 +137,15 @@ def get_comment(request):
 def get_comments(request):
     post_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
+    limit = request.POST.get('limit', 10)
     try:
         post_id = int(post_id)
         page = int(page)
-        return Post.get_comments(post_id, page)
+        limit = int(limit)
+        if page < 0 or limit < 1:
+            return invalid_data
+        if limit > 10:
+            limit = 10
+        return Post.get_comments(post_id, page, limit)
     except:
         return invalid_data
