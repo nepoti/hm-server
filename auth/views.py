@@ -30,7 +30,7 @@ def register(request):
     if User.objects.filter(email=email).exists():
         return email_already_exist
     user = User.objects.create_user(username, email, password)
-    user_profile = UserProfile.objects.create(user=user, name=user.username, followers=[], following=[])
+    user_profile = UserProfile.objects.create(user=user, name=user.username)
     if user is None or user_profile is None:
         return task_error
     return status_ok

@@ -20,8 +20,6 @@ class UserProfile(models.Model):
     birthday = models.DateField(blank=True, null=True)
     about = models.CharField(blank=True, default=u'',  max_length=100)
     achievements = models.TextField(default=u'{}')
-    followers = ArrayField(models.IntegerField())
-    following = ArrayField(models.IntegerField())
 
     def get_info(self):
         if not self.user.is_active:
@@ -29,7 +27,7 @@ class UserProfile(models.Model):
         return [{'id': self.id, 'name': self.name, 'profile_image': self.profile_image, 'gender': self.gender,
                 'country': self.country, 'city': self.city, 'birthday': self.birthday, 'about': self.about,
                  'achievements': self.achievements, 'username': self.user.username, 'is_active': True,
-                 'followers': len(self.followers), 'following': len(self.following), 'posts': self.posts.count()}]
+                 'followers': self.followers.count(), 'following': self.following.count(), 'posts': self.posts.count()}]
 
     def set_info(self, data):
         if type(data) is not dict:
@@ -80,12 +78,9 @@ class UserProfile(models.Model):
             return invalid_data
         if self == obj:
             return invalid_data
-        if follow_id not in self.following:
-            self.following.append(follow_id)
-            self.save()
-        if self.id not in obj.followers:
-            obj.followers.append(self.id)
-            obj.save()
+        if not Follow.objects.filter(following=obj, follower=self).exists():
+            follow_obj = Follow(following=obj, follower=self)
+            follow_obj.save()
         return status_ok
 
     def follow_remove(self, follow_id):
@@ -96,12 +91,7 @@ class UserProfile(models.Model):
             return invalid_data
         if self == obj:
             return invalid_data
-        if follow_id in self.following:
-            self.following.remove(follow_id)
-            self.save()
-        if self.id in obj.followers:
-            obj.followers.remove(self.id)
-            obj.save()
+        Follow.objects.filter(following=obj, follower=self).delete()
         return status_ok
 
     def follower_remove(self, follower_id):
@@ -112,12 +102,7 @@ class UserProfile(models.Model):
             return invalid_data
         if self == obj:
             return invalid_data
-        if follower_id in self.followers:
-            self.followers.remove(follower_id)
-            self.save()
-        if self.id in obj.following:
-            obj.following.remove(self.id)
-            obj.save()
+        Follow.objects.filter(following=self, follower=obj).delete()
         return status_ok
 
     def get_posts(self, page=0, limit=10):
@@ -136,18 +121,14 @@ class UserProfile(models.Model):
         return ok_response([response])
 
     def get_followers(self, page=0):
-        count = len(self.followers)
+        count = self.followers.count()
         response = {'limit': limit, 'page': page, 'count': count}
         start = page*limit
         end = start+limit
         if start >= count:
             response['data'] = []
             return ok_response([response])
-        to_search = self.followers[start:end]
-        clauses = ' '.join(['WHEN id=%s THEN %s' % (pk, i) for i, pk in enumerate(to_search)])
-        ordering = 'CASE %s END' % clauses
-        queryset = UserProfile.objects.filter(id__in=to_search)\
-            .extra(select={'ordering': ordering}, order_by=('ordering',))
+        queryset = [x.follower for x in self.followers.all()[start:end]]
         response['data'] = list([{'id': user.id,
                                   'name': user.name,
                                   'profile_image': user.profile_image,
@@ -156,21 +137,22 @@ class UserProfile(models.Model):
         return ok_response([response])
 
     def get_following(self, page=0):
-        count = len(self.following)
+        count = self.following.count()
         response = {'limit': limit, 'page': page, 'count': count}
         start = page*limit
         end = start+limit
         if start >= count:
             response['data'] = []
             return ok_response([response])
-        to_search = self.following[start:end]
-        clauses = ' '.join(['WHEN id=%s THEN %s' % (pk, i) for i, pk in enumerate(to_search)])
-        ordering = 'CASE %s END' % clauses
-        queryset = UserProfile.objects.filter(id__in=to_search)\
-            .extra(select={'ordering': ordering}, order_by=('ordering',))
+        queryset = [x.following for x in self.following.all()[start:end]]
         response['data'] = list([{'id': user.id,
                                   'name': user.name,
                                   'profile_image': user.profile_image,
                                   'username': user.user.username}
                                  for user in queryset])
         return ok_response([response])
+
+
+class Follow(models.Model):
+    following = models.ForeignKey(UserProfile, related_name='followers')
+    follower = models.ForeignKey(UserProfile, related_name='following')

@@ -3,7 +3,7 @@ from django.contrib.auth import logout as auth_logout
 from django.views.decorators.csrf import csrf_exempt
 from response.templates import auth_error, status_ok, ok_response, invalid_data, task_error
 from response.decorators import check_method_auth, check_methods_auth
-from user.models import UserProfile
+from user.models import UserProfile, Follow
 from social.models import UploadUrl
 from boto import s3
 from hashlib import sha256
@@ -30,16 +30,8 @@ def remove(request):
     user_profile.birthday = None
     user_profile.about = ''
     user_profile.achievements = '{}'
-    for follower in user_profile.followers:
-        obj = UserProfile.objects.filter(id=follower)[0]
-        if user_profile.id in obj.following:
-            obj.following.remove(user_profile.id)
-    for following in user_profile.following:
-        obj = UserProfile.objects.filter(id=following)[0]
-        if user_profile.id in obj.followers:
-            obj.followers.remove(user_profile.id)
-    user_profile.followers = []
-    user_profile.following = []
+    Follow.objects.filter(following=user_profile).delete()
+    Follow.objects.filter(follower=user_profile).delete()
     user_profile.save()
     auth_logout(request)
     return status_ok
