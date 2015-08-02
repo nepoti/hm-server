@@ -4,10 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 from response.templates import task_error, invalid_data
 from response.templates import ok_response, error_response, status_ok
 from datetime import date
-
-
-allowed_keys = {'name': 30, 'profile_image': 200, 'gender': 20, 'country': 50, 'city': 200, 'about': 100}
-limit = 20
+import constants as c
 
 
 class UserProfile(models.Model):
@@ -35,10 +32,10 @@ class UserProfile(models.Model):
         results = {}
         error = False
         for key in data:
-            if key in allowed_keys and type(key) is unicode:
+            if key in c.UserProfile_ALLOWED_KEYS and type(key) is unicode:
                 if type(data[key]) is not unicode:
                     results[key] = False
-                elif len(data[key]) > allowed_keys[key]:
+                elif len(data[key]) > c.UserProfile_ALLOWED_KEYS[key]:
                     results[key] = False
                 else:
                     setattr(self, key, data[key])
@@ -105,7 +102,7 @@ class UserProfile(models.Model):
         Follow.objects.filter(following=self, follower=obj).delete()
         return status_ok
 
-    def get_posts(self, page=0, limit=10):
+    def get_posts(self, page=0, limit=c.REQUEST_MAX_POSTS):
         count = self.posts.count()
         response = {'limit': limit, 'page': page, 'count': count}
         start = page*limit
@@ -120,7 +117,7 @@ class UserProfile(models.Model):
                                  for post in queryset])
         return ok_response([response])
 
-    def get_followers(self, page=0, limit=10):
+    def get_followers(self, page=0, limit=c.REQUEST_MAX_FOLLOWERS):
         count = self.followers.count()
         response = {'limit': limit, 'page': page, 'count': count}
         start = page*limit
@@ -137,7 +134,7 @@ class UserProfile(models.Model):
                                  for user in queryset])
         return ok_response([response])
 
-    def get_following(self, page=0, limit=10):
+    def get_following(self, page=0, limit=c.REQUEST_MAX_FOLLOWING):
         count = self.following.count()
         response = {'limit': limit, 'page': page, 'count': count}
         start = page*limit

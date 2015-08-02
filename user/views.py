@@ -8,8 +8,7 @@ from social.models import UploadUrl
 from boto import s3
 from hashlib import sha256
 from os import urandom
-
-max_size = 5*1024*1024
+import constants as c
 
 
 @csrf_exempt
@@ -42,14 +41,14 @@ def remove(request):
 def get_posts(request):
     user_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
-    limit = request.POST.get('limit', 10)
+    limit = request.POST.get('limit', c.REQUEST_MAX_POSTS)
     try:
         page = int(page)
         limit = int(limit)
         if page < 0 or limit < 1:
             return invalid_data
-        if limit > 10:
-            limit = 10
+        if limit > c.REQUEST_MAX_POSTS:
+            limit = c.REQUEST_MAX_POSTS
         if user_id:
             return UserProfile.objects.filter(id=int(user_id))[0].get_posts(page, limit)
         else:
@@ -79,14 +78,14 @@ def followers(request):
     if request.method == 'POST':
         user_id = request.POST.get('id', None)
         page = request.POST.get('page', 0)
-        limit = request.POST.get('limit', 20)
+        limit = request.POST.get('limit', c.REQUEST_MAX_FOLLOWERS)
         try:
             page = int(page)
             limit = int(limit)
             if page < 0 or limit < 1:
                 return invalid_data
-            if limit > 20:
-                limit = 20
+            if limit > c.REQUEST_MAX_FOLLOWERS:
+                limit = c.REQUEST_MAX_FOLLOWERS
             if user_id:
                 return UserProfile.objects.filter(id=int(user_id))[0].get_followers(page, limit)
             else:
@@ -105,7 +104,7 @@ def followers(request):
 def following(request):
     user_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
-    limit = request.POST.get('limit', 20)
+    limit = request.POST.get('limit', c.REQUEST_MAX_FOLLOWING)
     try:
         page = int(page)
         if page < 0:
@@ -113,8 +112,8 @@ def following(request):
         limit = int(limit)
         if page < 0 or limit < 1:
             return invalid_data
-        if limit > 20:
-            limit = 20
+        if limit > c.REQUEST_MAX_FOLLOWING:
+            limit = c.REQUEST_MAX_FOLLOWING
         if user_id:
             return UserProfile.objects.filter(id=int(user_id))[0].get_following(page, limit)
         else:
@@ -123,7 +122,7 @@ def following(request):
         return invalid_data
 
 
-client = s3.connect_to_region('eu-central-1', host='s3.eu-central-1.amazonaws.com')
+client = s3.connect_to_region(c.S3_REGION, host=c.S3_HOST)
 
 
 def new_upload_url(length):
@@ -134,10 +133,10 @@ def new_upload_url(length):
             key = sha256(urandom(32).encode('base_64')).hexdigest()
             exists = UploadUrl.objects.filter(key=key).exists()
             i += 1
-            if i == 10:
+            if i == c.S3_MAX_URL_GENERATE_ATTEMPTS:
                 return None
         return [key,
-                client.generate_url_sigv4(3600, 'PUT', 'thehealthme', key + '.jpg',
+                client.generate_url_sigv4(c.S3_URL_EXPIRATION_TIME, 'PUT', c.S3_BUCKET, key + '.jpg',
                                           headers={'Content-Type': 'image/jpeg', 'Content-Length': length})]
     except:
         return [None, None]
@@ -150,7 +149,7 @@ def imgupload(request):
         length = int(request.POST.get('length', None))
     except:
         return invalid_data
-    if length > max_size:
+    if length < 1 or length > c.S3_MAX_FILE_SIZE:
         return invalid_data
     key, url = new_upload_url(length)
     if url:

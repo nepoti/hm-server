@@ -11,6 +11,7 @@ from response.templates import auth_error, user_not_active, task_error, invalid_
 from response.decorators import check_method, check_method_auth
 from user.models import UserProfile
 from json import loads
+import constants as c
 
 
 @csrf_exempt
@@ -21,11 +22,11 @@ def register(request):
     email = request.POST.get('email', None)
     if username is None or password is None or email is None:
         raise Http404
-    if not match("^([a-zA-Z0-9_@\+\.\-]{1,30})$", username):
+    if not match(c.REGEX_USERNAME, username):
         return username_not_valid
     if User.objects.filter(username=username).exists():
         return username_already_exist
-    if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$", email):
+    if not match(c.REGEX_EMAIL, email):
         return email_not_valid
     if User.objects.filter(email=email).exists():
         return email_already_exist
@@ -78,13 +79,12 @@ def edit(request):
     if password is None or (username is None and new_password is None and email is None):
         raise Http404
     if username:
-        if not match("^([a-zA-Z0-9_@\+\.\-]{1,30})$", username):
+        if not match(c.REGEX_USERNAME, username):
             return username_not_valid
         if User.objects.filter(username=username).exists():
             return username_already_exist
     if email:
-        if not match("^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$",
-                     email):
+        if not match(c.REGEX_EMAIL, email):
             return email_not_valid
         if User.objects.filter(email=email).exists():
             return email_already_exist

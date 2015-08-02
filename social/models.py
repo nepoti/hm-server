@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from user.models import UserProfile
 from response.templates import invalid_data, access_error, ok_response, status_ok
-
-limit = 10
+import constants as c
 
 
 class Post(models.Model):
@@ -27,7 +26,7 @@ class Post(models.Model):
                              'comments': q.comments.count()}])
 
     @staticmethod
-    def get_likes(post_id, page=0, limit=10):
+    def get_likes(post_id, page=0, limit=c.REQUEST_MAX_LIKES):
         q = Post.objects.filter(id=post_id)
         if not q.exists():
             return invalid_data
@@ -48,7 +47,7 @@ class Post(models.Model):
         return ok_response([response])
 
     @staticmethod
-    def get_comments(post_id, page=0, limit=10):
+    def get_comments(post_id, page=0, limit=c.REQUEST_MAX_COMMENTS):
         q = Post.objects.filter(id=post_id)
         if not q.exists():
             return invalid_data

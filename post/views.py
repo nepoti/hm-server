@@ -7,6 +7,7 @@ from social.models import Post
 from social.models import PostComment
 from user.models import UserProfile
 from json import loads
+import constants as c
 
 
 @csrf_exempt
@@ -67,15 +68,15 @@ def like_post(request):
 def get_likes(request):
     post_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
-    limit = request.POST.get('limit', 10)
+    limit = request.POST.get('limit', c.REQUEST_MAX_LIKES)
     try:
         post_id = int(post_id)
         page = int(page)
         limit = int(limit)
         if page < 0 or limit < 1:
             return invalid_data
-        if limit > 10:
-            limit = 10
+        if limit > c.REQUEST_MAX_LIKES:
+            limit = c.REQUEST_MAX_LIKES
         return Post.get_likes(post_id, page, limit)
     except:
         return invalid_data
@@ -137,15 +138,15 @@ def get_comment(request):
 def get_comments(request):
     post_id = request.POST.get('id', None)
     page = request.POST.get('page', 0)
-    limit = request.POST.get('limit', 10)
+    limit = request.POST.get('limit', c.REQUEST_MAX_COMMENTS)
     try:
         post_id = int(post_id)
         page = int(page)
         limit = int(limit)
         if page < 0 or limit < 1:
             return invalid_data
-        if limit > 10:
-            limit = 10
+        if limit > c.REQUEST_MAX_COMMENTS:
+            limit = c.REQUEST_MAX_COMMENTS
         return Post.get_comments(post_id, page, limit)
     except:
         return invalid_data
