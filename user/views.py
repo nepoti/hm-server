@@ -40,19 +40,19 @@ def remove(request):
 @check_method_auth('POST')
 def get_posts(request):
     user_id = request.POST.get('id', None)
-    page = request.POST.get('page', 0)
+    offset = request.POST.get('offset', 0)
     limit = request.POST.get('limit', c.REQUEST_MAX_POSTS)
     try:
-        page = int(page)
+        offset = int(offset)
         limit = int(limit)
-        if page < 0 or limit < 1:
+        if offset < 0 or limit < 1:
             return invalid_data
         if limit > c.REQUEST_MAX_POSTS:
             limit = c.REQUEST_MAX_POSTS
         if user_id:
-            return UserProfile.objects.filter(id=int(user_id))[0].get_posts(page, limit)
+            return UserProfile.objects.filter(id=int(user_id))[0].get_posts(offset, limit)
         else:
-            return UserProfile.objects.filter(user_id=request.user.id)[0].get_posts(page, limit)
+            return UserProfile.objects.filter(user_id=request.user.id)[0].get_posts(offset, limit)
     except:
         return invalid_data
 
@@ -77,19 +77,19 @@ def follow(request):
 def followers(request):
     if request.method == 'POST':
         user_id = request.POST.get('id', None)
-        page = request.POST.get('page', 0)
+        offset = request.POST.get('offset', 0)
         limit = request.POST.get('limit', c.REQUEST_MAX_FOLLOWERS)
         try:
-            page = int(page)
+            offset = int(offset)
             limit = int(limit)
-            if page < 0 or limit < 1:
+            if offset < 0 or limit < 1:
                 return invalid_data
             if limit > c.REQUEST_MAX_FOLLOWERS:
                 limit = c.REQUEST_MAX_FOLLOWERS
             if user_id:
-                return UserProfile.objects.filter(id=int(user_id))[0].get_followers(page, limit)
+                return UserProfile.objects.filter(id=int(user_id))[0].get_followers(offset, limit)
             else:
-                return UserProfile.objects.filter(user_id=request.user.id)[0].get_followers(page, limit)
+                return UserProfile.objects.filter(user_id=request.user.id)[0].get_followers(offset, limit)
         except:
             return invalid_data
     else:  # DELETE
@@ -103,21 +103,19 @@ def followers(request):
 @check_method_auth('POST')
 def following(request):
     user_id = request.POST.get('id', None)
-    page = request.POST.get('page', 0)
+    offset = request.POST.get('offset', 0)
     limit = request.POST.get('limit', c.REQUEST_MAX_FOLLOWING)
     try:
-        page = int(page)
-        if page < 0:
-                return invalid_data
+        offset = int(offset)
         limit = int(limit)
-        if page < 0 or limit < 1:
+        if offset < 0 or limit < 1:
             return invalid_data
         if limit > c.REQUEST_MAX_FOLLOWING:
             limit = c.REQUEST_MAX_FOLLOWING
         if user_id:
-            return UserProfile.objects.filter(id=int(user_id))[0].get_following(page, limit)
+            return UserProfile.objects.filter(id=int(user_id))[0].get_following(offset, limit)
         else:
-            return UserProfile.objects.filter(user_id=request.user.id)[0].get_following(page, limit)
+            return UserProfile.objects.filter(user_id=request.user.id)[0].get_following(offset, limit)
     except:
         return invalid_data
 

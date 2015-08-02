@@ -26,14 +26,14 @@ class Post(models.Model):
                              'comments': q.comments.count()}])
 
     @staticmethod
-    def get_likes(post_id, page=0, limit=c.REQUEST_MAX_LIKES):
+    def get_likes(post_id, offset=0, limit=c.REQUEST_MAX_LIKES):
         q = Post.objects.filter(id=post_id)
         if not q.exists():
             return invalid_data
         q = q[0]
         count = q.likes.count()
-        response = {'limit': limit, 'page': page, 'count': count}
-        start = page*limit
+        response = {'limit': limit, 'offset': offset, 'count': count}
+        start = offset
         end = start+limit
         if start >= count:
             response['data'] = []
@@ -47,14 +47,14 @@ class Post(models.Model):
         return ok_response([response])
 
     @staticmethod
-    def get_comments(post_id, page=0, limit=c.REQUEST_MAX_COMMENTS):
+    def get_comments(post_id, offset=0, limit=c.REQUEST_MAX_COMMENTS):
         q = Post.objects.filter(id=post_id)
         if not q.exists():
             return invalid_data
         q = q[0]
         count = q.comments.count()
-        response = {'limit': limit, 'page': page, 'count': count}
-        start = page*limit
+        response = {'limit': limit, 'offset': offset, 'count': count}
+        start = offset
         end = start+limit
         if start >= count:
             response['data'] = []

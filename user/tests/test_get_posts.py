@@ -23,7 +23,7 @@ class UserGetPosts(TestCase):
         response = c.post(url, {'id': -1})
         self.assertEqual(response.content, invalid_data.content)
 
-        response = c.post(url, {'page': -1})
+        response = c.post(url, {'offset': -1})
         self.assertEqual(response.content, invalid_data.content)
 
         response = c.post(url, {'limit': -1})
@@ -47,7 +47,7 @@ class UserGetPosts(TestCase):
         self.assertEqual(len(content['result'][0]['data']), 2)
         self.assertEqual(content['result'][0]['data'][0]['text'], 'post2')
 
-        response = c.post(url, {'page': 1, 'limit': 1})
+        response = c.post(url, {'offset': 1, 'limit': 1})
 
         content = loads(response.content)
         self.assertEqual(content['status'], 1)
@@ -77,7 +77,7 @@ class UserGetPosts(TestCase):
         self.assertEqual(len(content['result'][0]['data']), 2)
         self.assertEqual(content['result'][0]['data'][0]['text'], 'post2')
 
-        response = c.post(url, {'id': profile.id, 'page': 1, 'limit': 1})
+        response = c.post(url, {'id': profile.id, 'offset': 1, 'limit': 1})
 
         content = loads(response.content)
         self.assertEqual(content['status'], 1)

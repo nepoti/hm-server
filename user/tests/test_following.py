@@ -35,11 +35,11 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
-        # check that results don't change when id and page is passed
-        response2 = c.post(following_url, {'id': profile.id, 'page': 0})
+        # check that results don't change when id and offset is passed
+        response2 = c.post(following_url, {'id': profile.id, 'offset': 0})
         self.assertEqual(response.content, response2.content)
 
         # check that 1st user have 0 followers
@@ -49,11 +49,11 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
-        # check that results don't change when id and page is passed
-        response2 = c.post(followers_url, {'id': profile.id, 'page': 0})
+        # check that results don't change when id and offset is passed
+        response2 = c.post(followers_url, {'id': profile.id, 'offset': 0})
         self.assertEqual(response.content, response2.content)
 
         # 1st user become a follower of 2nd user
@@ -67,7 +67,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 1)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         data = result['data']
         self.assertEqual(len(data), 1)
         data = data[0]
@@ -76,7 +76,7 @@ class UserFollow(TestCase):
         self.assertEqual(data['username'], 'test2')
         self.assertEqual(data['id'], profile2.id)
 
-        response2 = c.post(following_url, {'id': profile.id, 'page': 0})
+        response2 = c.post(following_url, {'id': profile.id, 'offset': 0})
         self.assertEqual(response.content, response2.content)
 
         response = c.post(followers_url, {'id': profile2.id})
@@ -85,7 +85,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 1)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         data = result['data']
         self.assertEqual(len(data), 1)
         data = data[0]
@@ -94,7 +94,7 @@ class UserFollow(TestCase):
         self.assertEqual(data['username'], 'test')
         self.assertEqual(data['id'], profile.id)
 
-        response2 = c.post(followers_url, {'id': profile2.id, 'page': 0})
+        response2 = c.post(followers_url, {'id': profile2.id, 'offset': 0})
         self.assertEqual(response.content, response2.content)
 
         # 1st user cancel following 2nd user
@@ -108,7 +108,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
         # check that 2nd user have 0 followers
@@ -118,7 +118,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
         # login 2nd user
@@ -144,7 +144,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
         # check that 2nd user have 0 following
@@ -154,7 +154,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
-        self.assertEqual(result['page'], 0)
+        self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
     def test_validation(self):
@@ -167,7 +167,7 @@ class UserFollow(TestCase):
         profile2 = UserProfile.objects.filter(user__username='test2')[0]
 
         wrong_id = max(profile.id, profile2.id) + 1
-        wrong_page = -1
+        wrong_offset = -1
 
         # follow_url without params
         response = c.post(follow_url, {})
@@ -191,10 +191,10 @@ class UserFollow(TestCase):
         response = c.post(following_url, {'id': wrong_id})
         self.assertEqual(response.content, invalid_data.content)
 
-        # followers_url with wrong page
-        response = c.post(followers_url, {'page': wrong_page})
+        # followers_url with wrong offset
+        response = c.post(followers_url, {'offset': wrong_offset})
         self.assertEqual(response.content, invalid_data.content)
 
-        # following_url with wrong page
-        response = c.post(following_url, {'page': wrong_page})
+        # following_url with wrong offset
+        response = c.post(following_url, {'offset': wrong_offset})
         self.assertEqual(response.content, invalid_data.content)

@@ -67,17 +67,17 @@ def like_post(request):
 @check_method_auth('POST')
 def get_likes(request):
     post_id = request.POST.get('id', None)
-    page = request.POST.get('page', 0)
+    offset = request.POST.get('offset', 0)
     limit = request.POST.get('limit', c.REQUEST_MAX_LIKES)
     try:
         post_id = int(post_id)
-        page = int(page)
+        offset = int(offset)
         limit = int(limit)
-        if page < 0 or limit < 1:
+        if offset < 0 or limit < 1:
             return invalid_data
         if limit > c.REQUEST_MAX_LIKES:
             limit = c.REQUEST_MAX_LIKES
-        return Post.get_likes(post_id, page, limit)
+        return Post.get_likes(post_id, offset, limit)
     except:
         return invalid_data
 
@@ -137,16 +137,16 @@ def get_comment(request):
 @check_method_auth('POST')
 def get_comments(request):
     post_id = request.POST.get('id', None)
-    page = request.POST.get('page', 0)
+    offset = request.POST.get('offset', 0)
     limit = request.POST.get('limit', c.REQUEST_MAX_COMMENTS)
     try:
         post_id = int(post_id)
-        page = int(page)
+        offset = int(offset)
         limit = int(limit)
-        if page < 0 or limit < 1:
+        if offset < 0 or limit < 1:
             return invalid_data
         if limit > c.REQUEST_MAX_COMMENTS:
             limit = c.REQUEST_MAX_COMMENTS
-        return Post.get_comments(post_id, page, limit)
+        return Post.get_comments(post_id, offset, limit)
     except:
         return invalid_data

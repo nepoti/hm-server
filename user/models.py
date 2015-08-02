@@ -102,10 +102,10 @@ class UserProfile(models.Model):
         Follow.objects.filter(following=self, follower=obj).delete()
         return status_ok
 
-    def get_posts(self, page=0, limit=c.REQUEST_MAX_POSTS):
+    def get_posts(self, offset=0, limit=c.REQUEST_MAX_POSTS):
         count = self.posts.count()
-        response = {'limit': limit, 'page': page, 'count': count}
-        start = page*limit
+        response = {'limit': limit, 'offset': offset, 'count': count}
+        start = offset
         end = start+limit
         if start >= count:
             response['data'] = []
@@ -117,10 +117,10 @@ class UserProfile(models.Model):
                                  for post in queryset])
         return ok_response([response])
 
-    def get_followers(self, page=0, limit=c.REQUEST_MAX_FOLLOWERS):
+    def get_followers(self, offset=0, limit=c.REQUEST_MAX_FOLLOWERS):
         count = self.followers.count()
-        response = {'limit': limit, 'page': page, 'count': count}
-        start = page*limit
+        response = {'limit': limit, 'offset': offset, 'count': count}
+        start = offset
         end = start+limit
         if start >= count:
             response['data'] = []
@@ -134,10 +134,10 @@ class UserProfile(models.Model):
                                  for user in queryset])
         return ok_response([response])
 
-    def get_following(self, page=0, limit=c.REQUEST_MAX_FOLLOWING):
+    def get_following(self, offset=0, limit=c.REQUEST_MAX_FOLLOWING):
         count = self.following.count()
-        response = {'limit': limit, 'page': page, 'count': count}
-        start = page*limit
+        response = {'limit': limit, 'offset': offset, 'count': count}
+        start = offset
         end = start+limit
         if start >= count:
             response['data'] = []
