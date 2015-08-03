@@ -8,6 +8,16 @@ REQUEST_MAX_POSTS = 10
 REQUEST_MAX_COMMENTS = 10
 REQUEST_MAX_LIKES = 10
 
+# Post constants
+POST_MAX_TEXT_LENGTH = 1000
+POST_MAX_PHOTOS = 10
+POST_MAX_LOCATIONS = 10
+
+# PostComment constants
+COMMENT_MAX_TEXT_LENGTH = 500
+COMMENT_MAX_PHOTOS = 10
+COMMENT_MAX_LOCATIONS = 10
+
 # S3
 S3_REGION = 'eu-central-1'  # Frankfurt
 S3_HOST = 's3.eu-central-1.amazonaws.com'  # special host for Frankfurt

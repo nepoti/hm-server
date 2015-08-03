@@ -8,9 +8,9 @@ import constants as c
 class Post(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(UserProfile, related_name='posts')
-    text = models.CharField(blank=True, default=u'', max_length=1000)
-    photos = ArrayField(models.URLField(), max_length=10)
-    locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=10)
+    text = models.CharField(blank=True, default=u'', max_length=c.POST_MAX_TEXT_LENGTH)
+    photos = ArrayField(models.URLField(), max_length=c.POST_MAX_PHOTOS)
+    locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=c.POST_MAX_LOCATIONS)
 
     class Meta:
         ordering = ['-timestamp']
@@ -96,14 +96,14 @@ class Post(models.Model):
         if text is not None:
             if type(text) is not unicode:
                 return invalid_data
-            elif len(text) > 1000:
+            elif len(text) > c.POST_MAX_TEXT_LENGTH:
                 return invalid_data
         else:
             text = u''
         if photos is not None:
             if type(photos) is not list:
                 return invalid_data
-            elif len(photos) > 10:
+            elif len(photos) > c.POST_MAX_PHOTOS:
                 return invalid_data
             else:
                 for x in photos:
@@ -116,7 +116,7 @@ class Post(models.Model):
         if locations is not None:
             if type(locations) is not list:
                 return invalid_data
-            elif len(locations) > 10:
+            elif len(locations) > c.POST_MAX_LOCATIONS:
                 return invalid_data
             else:
                 for x in locations:
@@ -140,12 +140,12 @@ class Post(models.Model):
         if text is not None:
             if type(text) is not unicode:
                 return invalid_data
-            elif len(text) > 1000:
+            elif len(text) > c.POST_MAX_TEXT_LENGTH:
                 return invalid_data
         if photos is not None:
             if type(photos) is not list:
                 return invalid_data
-            elif len(photos) > 10:
+            elif len(photos) > c.POST_MAX_PHOTOS:
                 return invalid_data
             else:
                 for x in photos:
@@ -156,7 +156,7 @@ class Post(models.Model):
         if locations is not None:
             if type(locations) is not list:
                 return invalid_data
-            elif len(locations) > 10:
+            elif len(locations) > c.POST_MAX_LOCATIONS:
                 return invalid_data
             else:
                 for x in locations:
@@ -186,9 +186,9 @@ class Post(models.Model):
 class PostComment(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(UserProfile)
-    text = models.CharField(blank=True, default=u'', max_length=500)
-    photos = ArrayField(models.URLField(), max_length=10)
-    locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=10)
+    text = models.CharField(blank=True, default=u'', max_length=c.COMMENT_MAX_TEXT_LENGTH)
+    photos = ArrayField(models.URLField(), max_length=c.COMMENT_MAX_PHOTOS)
+    locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=c.COMMENT_MAX_LOCATIONS)
     post = models.ForeignKey(Post, related_name='comments')
 
     class Meta:
@@ -210,14 +210,14 @@ class PostComment(models.Model):
         if text is not None:
             if type(text) is not unicode:
                 return invalid_data
-            elif len(text) > 500:
+            elif len(text) > c.COMMENT_MAX_TEXT_LENGTH:
                 return invalid_data
         else:
             text = u''
         if photos is not None:
             if type(photos) is not list:
                 return invalid_data
-            elif len(photos) > 10:
+            elif len(photos) > c.COMMENT_MAX_PHOTOS:
                 return invalid_data
             else:
                 for x in photos:
@@ -230,7 +230,7 @@ class PostComment(models.Model):
         if locations is not None:
             if type(locations) is not list:
                 return invalid_data
-            elif len(locations) > 10:
+            elif len(locations) > c.COMMENT_MAX_LOCATIONS:
                 return invalid_data
             else:
                 for x in locations:
@@ -254,12 +254,12 @@ class PostComment(models.Model):
         if text is not None:
             if type(text) is not unicode:
                 return invalid_data
-            elif len(text) > 500:
+            elif len(text) > c.COMMENT_MAX_TEXT_LENGTH:
                 return invalid_data
         if photos is not None:
             if type(photos) is not list:
                 return invalid_data
-            elif len(photos) > 10:
+            elif len(photos) > c.COMMENT_MAX_PHOTOS:
                 return invalid_data
             else:
                 for x in photos:
@@ -270,7 +270,7 @@ class PostComment(models.Model):
         if locations is not None:
             if type(locations) is not list:
                 return invalid_data
-            elif len(locations) > 10:
+            elif len(locations) > c.COMMENT_MAX_LOCATIONS:
                 return invalid_data
             else:
                 for x in locations:
