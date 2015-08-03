@@ -143,8 +143,11 @@ def new_upload_url(length):
 @csrf_exempt
 @check_method_auth('POST')
 def imgupload(request):
+    length = request.POST.get('length', None)
+    if length is None:
+        raise Http404
     try:
-        length = int(request.POST.get('length', None))
+        length = int(length)
     except:
         return invalid_data
     if length < 1 or length > c.S3_MAX_FILE_SIZE:
