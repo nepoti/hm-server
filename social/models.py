@@ -15,6 +15,9 @@ class Post(models.Model):
     class Meta:
         ordering = ['-timestamp']
 
+    def __unicode__(self):
+        return self.author.name + u':' + self.text
+
     @staticmethod
     def get_post(post_id):
         q = Post.objects.filter(id=post_id)
@@ -193,6 +196,9 @@ class PostComment(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+
+    def __unicode__(self):
+        return self.author.name + u':' + self.text
 
     @staticmethod
     def get_comment(comment_id):

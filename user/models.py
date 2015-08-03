@@ -18,6 +18,9 @@ class UserProfile(models.Model):
     about = models.CharField(blank=True, default=u'',  max_length=100)
     achievements = models.TextField(default=u'{}')
 
+    def __unicode__(self):
+        return self.name
+
     def get_info(self):
         if not self.user.is_active:
             return [{'id': self.id, 'name': self.name, 'username': self.user.username, 'is_active': False}]
