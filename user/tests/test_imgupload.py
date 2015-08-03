@@ -12,6 +12,23 @@ class UserImgupload(TestCase):
         response = self.client.post('/auth/login', {'username': 'test', 'password': 'pass'})
         self.assertTrue(response.cookies)
 
+    def test_validation(self):
+        url = '/user/imgupload'
+        c = self.client
+
+        response = c.post(url)
+        self.assertEqual(response.status_code, 404)
+
+        response = c.post(url, {'length': 0})
+        content = loads(response.content)
+        self.assertEqual(content['status'], 0)
+        self.assertEqual(content['error'], 51)
+
+        response = c.post(url, {'length': -1})
+        content = loads(response.content)
+        self.assertEqual(content['status'], 0)
+        self.assertEqual(content['error'], 51)
+
     def test_imgupload(self):
         url = '/user/imgupload'
         c = self.client

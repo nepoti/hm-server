@@ -1,8 +1,5 @@
 from django.test import TestCase, Client
-from response.templates import username_not_valid, username_already_exist
-from response.templates import email_not_valid, email_already_exist
-from response.templates import auth_error, user_not_active, task_error, invalid_data, status_ok
-from django.contrib.auth.models import User
+from response.templates import status_ok
 from social.models import UserProfile
 
 

@@ -1,10 +1,8 @@
 from django.test import TestCase, Client
-from response.templates import username_not_valid, username_already_exist
-from response.templates import email_not_valid, email_already_exist
-from response.templates import auth_error, user_not_active, task_error, invalid_data, status_ok
-from django.contrib.auth.models import User
+from response.templates import invalid_data, status_ok
 from social.models import UserProfile
 from json import loads
+import constants
 
 
 class UserFollow(TestCase):
@@ -35,6 +33,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWING)
         self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
@@ -49,6 +48,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWERS)
         self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
@@ -67,6 +67,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 1)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWING)
         self.assertEqual(result['offset'], 0)
         data = result['data']
         self.assertEqual(len(data), 1)
@@ -85,6 +86,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 1)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWERS)
         self.assertEqual(result['offset'], 0)
         data = result['data']
         self.assertEqual(len(data), 1)
@@ -108,6 +110,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWING)
         self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
@@ -118,6 +121,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWERS)
         self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
@@ -144,6 +148,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWERS)
         self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 
@@ -154,6 +159,7 @@ class UserFollow(TestCase):
         self.assertEqual(content['error'], 0)
         result = content['result'][0]
         self.assertEqual(result['count'], 0)
+        self.assertEqual(result['limit'], constants.REQUEST_MAX_FOLLOWING)
         self.assertEqual(result['offset'], 0)
         self.assertEqual(result['data'], [])
 

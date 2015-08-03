@@ -1,10 +1,8 @@
 from django.test import TestCase, Client
-from response.templates import username_not_valid, username_already_exist
-from response.templates import email_not_valid, email_already_exist
-from response.templates import auth_error, user_not_active, task_error, invalid_data, status_ok
-from django.contrib.auth.models import User
+from response.templates import invalid_data, status_ok
 from social.models import UserProfile, Post
 from json import loads
+import constants
 
 
 class UserGetPosts(TestCase):
@@ -44,6 +42,7 @@ class UserGetPosts(TestCase):
         self.assertEqual(content['status'], 1)
         self.assertEqual(content['error'], 0)
         self.assertEqual(content['result'][0]['count'], 2)
+        self.assertEqual(content['result'][0]['limit'], constants.REQUEST_MAX_POSTS)
         self.assertEqual(len(content['result'][0]['data']), 2)
         self.assertEqual(content['result'][0]['data'][0]['text'], 'post2')
 
@@ -53,6 +52,7 @@ class UserGetPosts(TestCase):
         self.assertEqual(content['status'], 1)
         self.assertEqual(content['error'], 0)
         self.assertEqual(content['result'][0]['count'], 2)
+        self.assertEqual(content['result'][0]['limit'], 1)
         self.assertEqual(len(content['result'][0]['data']), 1)
         self.assertEqual(content['result'][0]['data'][0]['text'], 'post')
 
@@ -74,6 +74,7 @@ class UserGetPosts(TestCase):
         self.assertEqual(content['status'], 1)
         self.assertEqual(content['error'], 0)
         self.assertEqual(content['result'][0]['count'], 2)
+        self.assertEqual(content['result'][0]['limit'], constants.REQUEST_MAX_POSTS)
         self.assertEqual(len(content['result'][0]['data']), 2)
         self.assertEqual(content['result'][0]['data'][0]['text'], 'post2')
 
@@ -83,5 +84,6 @@ class UserGetPosts(TestCase):
         self.assertEqual(content['status'], 1)
         self.assertEqual(content['error'], 0)
         self.assertEqual(content['result'][0]['count'], 2)
+        self.assertEqual(content['result'][0]['limit'], 1)
         self.assertEqual(len(content['result'][0]['data']), 1)
         self.assertEqual(content['result'][0]['data'][0]['text'], 'post')
