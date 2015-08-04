@@ -1,16 +1,16 @@
-from __future__ import absolute_import
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-from user.models import UserProfile
+import user.models
 from response.templates import invalid_data, access_error, ok_response, status_ok
 import constants as c
+from social.tasks import crop_post_image, crop_comment_image
 
 
 class Post(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(UserProfile, related_name='posts')
+    author = models.ForeignKey(user.models.UserProfile, related_name='posts')
     text = models.CharField(blank=True, default=u'', max_length=c.POST_MAX_TEXT_LENGTH)
-    photos = ArrayField(models.URLField(), max_length=c.POST_MAX_PHOTOS)
+    photos = ArrayField(ArrayField(models.URLField(), size=2), max_length=c.POST_MAX_PHOTOS)
     locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=c.POST_MAX_LOCATIONS)
 
     class Meta:
@@ -110,10 +110,13 @@ class Post(models.Model):
             elif len(photos) > c.POST_MAX_PHOTOS:
                 return invalid_data
             else:
+                url_start = 'https://' + c.S3_BUCKET + '.' + c.S3_HOST + '/'
                 for x in photos:
                     if type(x) != unicode:
                         return invalid_data
                     elif len(x) > 200:
+                        return invalid_data
+                    elif not (x.startswith(url_start) and len(x) == len(url_start) + 64 + 4):
                         return invalid_data
         else:
             photos = []
@@ -132,8 +135,10 @@ class Post(models.Model):
                         return invalid_data
         else:
             locations = []
-        post = Post(author=author, text=text, photos=photos, locations=locations)
+        post = Post(author=author, text=text, photos=list([['', x] for x in photos]), locations=locations)
         post.save()
+        if photos:
+            crop_post_image.delay(post.id)
         return ok_response([{'id': post.id, 'timestamp': post.timestamp}])
 
     def edit(self, author, text, photos, locations):
@@ -152,10 +157,13 @@ class Post(models.Model):
             elif len(photos) > c.POST_MAX_PHOTOS:
                 return invalid_data
             else:
+                url_start = 'https://' + c.S3_BUCKET + '.' + c.S3_HOST + '/'
                 for x in photos:
                     if type(x) != unicode:
                         return invalid_data
                     elif len(x) > 200:
+                        return invalid_data
+                    elif not (x.startswith(url_start) and len(x) == len(url_start) + 64 + 4):
                         return invalid_data
         if locations is not None:
             if type(locations) is not list:
@@ -173,10 +181,12 @@ class Post(models.Model):
         if text:
             self.text = text
         if photos:
-            self.photos = photos
+            self.photos = list([['', x] for x in photos])
         if locations:
             self.locations = locations
         self.save()
+        if photos:
+            crop_post_image.delay(self.id)
         return status_ok
 
     def remove(self, author):
@@ -189,9 +199,9 @@ class Post(models.Model):
 
 class PostComment(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(UserProfile)
+    author = models.ForeignKey(user.models.UserProfile)
     text = models.CharField(blank=True, default=u'', max_length=c.COMMENT_MAX_TEXT_LENGTH)
-    photos = ArrayField(models.URLField(), max_length=c.COMMENT_MAX_PHOTOS)
+    photos = ArrayField(ArrayField(models.URLField(), size=2), max_length=c.COMMENT_MAX_PHOTOS)
     locations = ArrayField(ArrayField(models.FloatField(), size=2), max_length=c.COMMENT_MAX_LOCATIONS)
     post = models.ForeignKey(Post, related_name='comments')
 
@@ -227,10 +237,13 @@ class PostComment(models.Model):
             elif len(photos) > c.COMMENT_MAX_PHOTOS:
                 return invalid_data
             else:
+                url_start = 'https://' + c.S3_BUCKET + '.' + c.S3_HOST + '/'
                 for x in photos:
                     if type(x) != unicode:
                         return invalid_data
                     elif len(x) > 200:
+                        return invalid_data
+                    elif not (x.startswith(url_start) and len(x) == len(url_start) + 64 + 4):
                         return invalid_data
         else:
             photos = []
@@ -249,8 +262,11 @@ class PostComment(models.Model):
                         return invalid_data
         else:
             locations = []
-        comment = PostComment(post=post, author=author, text=text, photos=photos, locations=locations)
+        comment = PostComment(post=post, author=author, text=text, photos=list([['', x] for x in photos]),
+                              locations=locations)
         comment.save()
+        if photos:
+            crop_comment_image.delay(comment.id)
         return ok_response([{'id': comment.id, 'timestamp': comment.timestamp}])
 
     def edit(self, author, text, photos, locations):
@@ -269,10 +285,13 @@ class PostComment(models.Model):
             elif len(photos) > c.COMMENT_MAX_PHOTOS:
                 return invalid_data
             else:
+                url_start = 'https://' + c.S3_BUCKET + '.' + c.S3_HOST + '/'
                 for x in photos:
                     if type(x) != unicode:
                         return invalid_data
                     elif len(x) > 200:
+                        return invalid_data
+                    elif not (x.startswith(url_start) and len(x) == len(url_start) + 64 + 4):
                         return invalid_data
         if locations is not None:
             if type(locations) is not list:
@@ -290,10 +309,12 @@ class PostComment(models.Model):
         if text:
             self.text = text
         if photos:
-            self.photos = photos
+            self.photos = list([['', x] for x in photos])
         if locations:
             self.locations = locations
         self.save()
+        if photos:
+            crop_comment_image.delay(self.id)
         return status_ok
 
     def remove(self, author):
@@ -304,7 +325,7 @@ class PostComment(models.Model):
 
 
 class PostLike(models.Model):
-    user = models.ForeignKey(UserProfile)
+    user = models.ForeignKey(user.models.UserProfile)
     post = models.ForeignKey(Post, related_name='likes')
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -313,7 +334,7 @@ class PostLike(models.Model):
 
 
 class CommentLike(models.Model):
-    user = models.ForeignKey(UserProfile)
+    user = models.ForeignKey(user.models.UserProfile)
     comment = models.ForeignKey(PostComment, related_name='likes')
     timestamp = models.DateTimeField(auto_now_add=True)
 

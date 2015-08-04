@@ -1,6 +1,11 @@
 # UserProfile fields
 UserProfile_ALLOWED_KEYS = {'name': 30, 'profile_image': 200, 'gender': 20, 'country': 50, 'city': 200, 'about': 100}
 
+# Image previews
+UserProfile_PREVIEW_SIZE = (200, 200)
+POST_PREVIEW_SIZE = (200, 200)
+COMMENT_PREVIEW_SIZE = (200, 200)
+
 # Requests limits
 REQUEST_MAX_FOLLOWING = 20
 REQUEST_MAX_FOLLOWERS = 20
