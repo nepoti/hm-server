@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 from response.templates import task_error, invalid_data
 from response.templates import ok_response, error_response, status_ok
+from social.tasks import crop_userprofile_image
 from datetime import date
 import constants as c
 
@@ -10,7 +11,7 @@ import constants as c
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
     name = models.CharField(max_length=30)
-    profile_image = models.URLField(blank=True, default=u'')
+    profile_image = ArrayField(models.URLField(default=''), size=2, default=['', ''])
     gender = models.CharField(blank=True, default=u'', max_length=20)
     country = models.CharField(blank=True, default=u'', max_length=50)
     city = models.CharField(blank=True, default=u'', max_length=200)
@@ -34,6 +35,7 @@ class UserProfile(models.Model):
             return task_error
         results = {}
         error = False
+        add_crop_task = False
         for key in data:
             if key in c.UserProfile_ALLOWED_KEYS and type(key) is unicode:
                 if type(data[key]) is not unicode:
@@ -41,8 +43,17 @@ class UserProfile(models.Model):
                 elif len(data[key]) > c.UserProfile_ALLOWED_KEYS[key]:
                     results[key] = False
                 else:
-                    setattr(self, key, data[key])
-                    results[key] = True
+                    if key == 'profile_image':
+                        url_start = 'https://' + c.S3_BUCKET + '.' + c.S3_HOST + '/'
+                        if data[key].startswith(url_start) and len(data[key]) == len(url_start) + 64 + 4:
+                            self.profile_image[1] = data[key]
+                            add_crop_task = data[key]
+                            results[key] = True
+                        else:
+                            results[key] = False
+                    else:
+                        setattr(self, key, data[key])
+                        results[key] = True
             elif key == 'birthday':
                 results[key] = self.set_birthday(data[key])
             else:
@@ -50,6 +61,8 @@ class UserProfile(models.Model):
             if not results[key]:
                 error = True
         self.save()
+        if add_crop_task:
+            crop_userprofile_image.delay(self.id)
         if error:
             return error_response(50, [results])
         return ok_response([results])
