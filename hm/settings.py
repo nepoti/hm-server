@@ -38,11 +38,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-    #    'tokenapi',
     'hm',
     'auth',
     'user',
     'social',
+    'djcelery',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -120,3 +120,16 @@ if DEBUG:
     EMAIL_HOST_PASSWORD = 'rootrootroot'
     EMAIL_USE_TLS = True
     DEFAULT_FROM_EMAIL = 'devtest1997@yandex.ru'
+
+
+# Celery
+import djcelery
+djcelery.setup_loader()
+
+BROKER_URL = 'amqp://root:root@localhost:5672/hm'
+CELERY_SEND_TASK_ERROR_EMAILS = False  # default = True
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
