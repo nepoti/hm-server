@@ -150,3 +150,32 @@ def get_comments(request):
         return Post.get_comments(post_id, offset, limit)
     except:
         return invalid_data
+
+
+@csrf_exempt
+@check_methods_auth(['POST', 'DELETE'])
+def like_comment(request):
+    comment_id = QueryDict(request.body).get('id', None)
+    if comment_id is None:
+        raise Http404
+    return PostComment.like_comment(comment_id,
+                                    UserProfile.objects.filter(user_id=request.user.id)[0], request.method == 'POST')
+
+
+@csrf_exempt
+@check_method_auth('POST')
+def get_comment_likes(request):
+    comment_id = request.POST.get('id', None)
+    offset = request.POST.get('offset', 0)
+    limit = request.POST.get('limit', c.REQUEST_MAX_LIKES)
+    try:
+        comment_id = int(comment_id)
+        offset = int(offset)
+        limit = int(limit)
+        if offset < 0 or limit < 1:
+            return invalid_data
+        if limit > c.REQUEST_MAX_LIKES:
+            limit = c.REQUEST_MAX_LIKES
+        return PostComment.get_likes(comment_id, offset, limit)
+    except:
+        return invalid_data

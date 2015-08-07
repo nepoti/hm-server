@@ -221,6 +221,43 @@ class PostComment(models.Model):
                              'text': q.text, 'photos': q.photos, 'locations': q.locations, 'likes': q.likes.count()}])
 
     @staticmethod
+    def get_likes(comment_id, offset=0, limit=c.REQUEST_MAX_LIKES):
+        q = PostComment.objects.filter(id=comment_id)
+        if not q.exists():
+            return invalid_data
+        q = q[0]
+        count = q.likes.count()
+        response = {'limit': limit, 'offset': offset, 'count': count}
+        start = offset
+        end = start+limit
+        if start >= count:
+            response['data'] = []
+            return ok_response([response])
+        queryset = q.likes.all()[start:end]
+        response['data'] = list([{'id': like.user.id,
+                                  'name': like.user.name,
+                                  'profile_image': like.user.profile_image,
+                                  'username': like.user.user.username}
+                                 for like in queryset])
+        return ok_response([response])
+
+    @staticmethod
+    def like_comment(comment_id, user, add):
+        # add: true - add like, false - remove like
+        comment = PostComment.objects.filter(id=comment_id)
+        if not comment.exists():
+            return invalid_data
+        temp = comment.likes.filter(user_id=user.id)
+        comment = comment[0]
+        is_in = temp.exists()
+        if add and not is_in:
+            like = CommentLike(user=user, comment=comment)
+            like.save()
+        elif not add and is_in:
+            temp.delete()
+        return ok_response([{'likes': comment.likes.count()}])
+
+    @staticmethod
     def create(post, author, text, photos, locations):
         if text is None and photos is None and locations is None:
             return invalid_data
