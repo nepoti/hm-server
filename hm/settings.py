@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'user',
     'social',
     'djcelery',
+    'error',
 )
 
 MIDDLEWARE_CLASSES = (
