@@ -2,6 +2,7 @@ from django.http import Http404
 from templates import auth_error
 from templates import user_not_active
 
+
 def check_method(method):
     def my_decorator(function):
         def wrapper(request):
@@ -10,6 +11,7 @@ def check_method(method):
             return function(request)
         return wrapper
     return my_decorator
+
 
 def check_method_auth(method):
     def my_decorator(function):
