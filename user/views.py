@@ -9,6 +9,7 @@ from boto import s3
 from hashlib import sha256
 from os import urandom
 import constants as c
+from django.views.decorators.gzip import gzip_page
 
 
 @csrf_exempt
@@ -40,6 +41,7 @@ def remove(request):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def get_posts(request):
     user_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -78,6 +80,7 @@ def follow(request):
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 @check_headers_version
+@gzip_page
 def followers(request):
     if request.method == 'POST':
         user_id = request.POST.get('id', None)
@@ -106,6 +109,7 @@ def followers(request):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def following(request):
     user_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -148,6 +152,7 @@ def new_upload_url(length):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def imgupload(request):
     length = request.POST.get('length', None)
     if length is None:

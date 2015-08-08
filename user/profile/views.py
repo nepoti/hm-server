@@ -4,11 +4,13 @@ from response.templates import ok_response, invalid_data
 from response.decorators import check_method_auth, check_headers_version
 from user.models import UserProfile
 from json import loads
+from django.views.decorators.gzip import gzip_page
 
 
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def read(request):
     user_id = request.POST.get('id', None)
     try:

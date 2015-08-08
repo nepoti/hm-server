@@ -8,6 +8,7 @@ from social.models import PostComment
 from user.models import UserProfile
 from json import loads
 import constants as c
+from django.views.decorators.gzip import gzip_page
 
 
 @csrf_exempt
@@ -49,6 +50,7 @@ def proceed_post(request):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def get_post(request):
     post_id = request.POST.get('id', None)
     if post_id is None:
@@ -69,6 +71,7 @@ def like_post(request):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def get_likes(request):
     post_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -132,6 +135,7 @@ def proceed_comment(request):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def get_comment(request):
     comment_id = request.POST.get('id', None)
     if comment_id is None:
@@ -142,6 +146,7 @@ def get_comment(request):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def get_comments(request):
     post_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -173,6 +178,7 @@ def like_comment(request):
 @csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
+@gzip_page
 def get_comment_likes(request):
     comment_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
