@@ -1,7 +1,7 @@
 from django.http import Http404
 from django.http import QueryDict
 from django.views.decorators.csrf import csrf_exempt
-from response.decorators import check_method_auth, check_methods_auth
+from response.decorators import check_method_auth, check_methods_auth, check_headers_version
 from response.templates import invalid_data
 from social.models import Post
 from social.models import PostComment
@@ -12,6 +12,7 @@ import constants as c
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
+@check_headers_version
 def proceed_post(request):
     author = UserProfile.objects.filter(user_id=request.user.id)[0]
     if request.method == 'POST':
@@ -47,6 +48,7 @@ def proceed_post(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def get_post(request):
     post_id = request.POST.get('id', None)
     if post_id is None:
@@ -56,6 +58,7 @@ def get_post(request):
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
+@check_headers_version
 def like_post(request):
     post_id = QueryDict(request.body).get('id', None)
     if post_id is None:
@@ -65,6 +68,7 @@ def like_post(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def get_likes(request):
     post_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -84,6 +88,7 @@ def get_likes(request):
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
+@check_headers_version
 def proceed_comment(request):
     author = UserProfile.objects.filter(user_id=request.user.id)[0]
     if request.method == 'POST':
@@ -126,6 +131,7 @@ def proceed_comment(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def get_comment(request):
     comment_id = request.POST.get('id', None)
     if comment_id is None:
@@ -135,6 +141,7 @@ def get_comment(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def get_comments(request):
     post_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -154,6 +161,7 @@ def get_comments(request):
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
+@check_headers_version
 def like_comment(request):
     comment_id = QueryDict(request.body).get('id', None)
     if comment_id is None:
@@ -164,6 +172,7 @@ def like_comment(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def get_comment_likes(request):
     comment_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)

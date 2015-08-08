@@ -1,3 +1,7 @@
+# Client
+CLIENT_PLATFORMS = ['android']
+CLIENT_MIN_VERSION = {'android': '0.3'}
+
 # UserProfile fields
 UserProfile_ALLOWED_KEYS = {'name': 30, 'profile_image': 200, 'gender': 20, 'country': 50, 'city': 200, 'about': 100}
 

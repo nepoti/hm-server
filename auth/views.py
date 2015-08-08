@@ -8,7 +8,7 @@ from re import match
 from response.templates import username_not_valid, username_already_exist
 from response.templates import email_not_valid, email_already_exist
 from response.templates import auth_error, user_not_active, task_error, invalid_data, status_ok
-from response.decorators import check_method, check_method_auth
+from response.decorators import check_method, check_method_auth, check_headers_version
 from user.models import UserProfile
 from json import loads
 import constants as c
@@ -16,6 +16,7 @@ import constants as c
 
 @csrf_exempt
 @check_method('POST')
+@check_headers_version
 def register(request):
     username = request.POST.get('username', None)
     password = request.POST.get('password', None)
@@ -39,6 +40,7 @@ def register(request):
 
 @csrf_exempt
 @check_method('POST')
+@check_headers_version
 def login(request):
     if request.POST.get('cookies', None) == 'true':
         if request.user.is_authenticated():
@@ -64,6 +66,7 @@ def login(request):
 
 @csrf_exempt
 @check_method('POST')
+@check_headers_version
 def logout(request):
     auth_logout(request)
     return status_ok
@@ -71,6 +74,7 @@ def logout(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def edit(request):
     password = request.POST.get('password', None)
     username = request.POST.get('username', None)

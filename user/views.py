@@ -2,7 +2,7 @@ from django.http import Http404, QueryDict
 from django.contrib.auth import logout as auth_logout
 from django.views.decorators.csrf import csrf_exempt
 from response.templates import auth_error, status_ok, ok_response, invalid_data, task_error
-from response.decorators import check_method_auth, check_methods_auth
+from response.decorators import check_method_auth, check_methods_auth, check_headers_version
 from user.models import UserProfile, Follow
 from social.models import UploadUrl
 from boto import s3
@@ -13,6 +13,7 @@ import constants as c
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def remove(request):
     password = request.POST.get('password', None)
     if password is None:
@@ -38,6 +39,7 @@ def remove(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def get_posts(request):
     user_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -59,6 +61,7 @@ def get_posts(request):
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
+@check_headers_version
 def follow(request):
     if request.method == 'POST':
         follow_id = request.POST.get('id', None)
@@ -74,6 +77,7 @@ def follow(request):
 
 @csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
+@check_headers_version
 def followers(request):
     if request.method == 'POST':
         user_id = request.POST.get('id', None)
@@ -101,6 +105,7 @@ def followers(request):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def following(request):
     user_id = request.POST.get('id', None)
     offset = request.POST.get('offset', 0)
@@ -142,6 +147,7 @@ def new_upload_url(length):
 
 @csrf_exempt
 @check_method_auth('POST')
+@check_headers_version
 def imgupload(request):
     length = request.POST.get('length', None)
     if length is None:
