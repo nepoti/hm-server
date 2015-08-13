@@ -64,7 +64,6 @@ def login(request):
         return auth_error
 
 
-@csrf_exempt
 @check_method('POST')
 @check_headers_version
 def logout(request):
@@ -72,7 +71,6 @@ def logout(request):
     return status_ok
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 def edit(request):

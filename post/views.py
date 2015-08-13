@@ -11,7 +11,6 @@ import constants as c
 from django.views.decorators.gzip import gzip_page
 
 
-@csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 @check_headers_version
 def proceed_post(request):
@@ -47,7 +46,6 @@ def proceed_post(request):
         return post.remove(author)
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
@@ -58,7 +56,6 @@ def get_post(request):
     return Post.get_post(post_id)
 
 
-@csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 @check_headers_version
 def like_post(request):
@@ -68,7 +65,6 @@ def like_post(request):
     return Post.like_post(post_id, UserProfile.objects.filter(user_id=request.user.id)[0], request.method == 'POST')
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
@@ -89,7 +85,6 @@ def get_likes(request):
         return invalid_data
 
 
-@csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 @check_headers_version
 def proceed_comment(request):
@@ -132,7 +127,6 @@ def proceed_comment(request):
         return comment.remove(author)
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
@@ -143,7 +137,6 @@ def get_comment(request):
     return PostComment.get_comment(comment_id)
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
@@ -164,7 +157,6 @@ def get_comments(request):
         return invalid_data
 
 
-@csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 @check_headers_version
 def like_comment(request):
@@ -175,7 +167,6 @@ def like_comment(request):
                                     UserProfile.objects.filter(user_id=request.user.id)[0], request.method == 'POST')
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page

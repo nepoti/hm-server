@@ -7,7 +7,6 @@ from json import loads
 from django.views.decorators.gzip import gzip_page
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
@@ -24,7 +23,6 @@ def read(request):
         return invalid_data
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 def update(request):

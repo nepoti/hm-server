@@ -12,7 +12,6 @@ import constants as c
 from django.views.decorators.gzip import gzip_page
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 def remove(request):
@@ -38,7 +37,6 @@ def remove(request):
     return status_ok
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
@@ -61,7 +59,6 @@ def get_posts(request):
         return invalid_data
 
 
-@csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 @check_headers_version
 def follow(request):
@@ -77,7 +74,6 @@ def follow(request):
         return UserProfile.objects.filter(user_id=request.user.id)[0].follow_remove(follow_id)
 
 
-@csrf_exempt
 @check_methods_auth(['POST', 'DELETE'])
 @check_headers_version
 @gzip_page
@@ -106,7 +102,6 @@ def followers(request):
         return UserProfile.objects.filter(user_id=request.user.id)[0].follower_remove(follower_id)
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
@@ -149,7 +144,6 @@ def new_upload_url(length):
         return [None, None]
 
 
-@csrf_exempt
 @check_method_auth('POST')
 @check_headers_version
 @gzip_page
