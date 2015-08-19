@@ -12,6 +12,7 @@ from response.decorators import check_method, check_method_auth, check_headers_v
 from user.models import UserProfile
 from json import loads
 import constants as c
+from django.views.decorators.gzip import gzip_page
 
 
 @csrf_exempt
@@ -124,11 +125,12 @@ def restore(request):
     return status_ok
 
 
+@gzip_page
 def restore_confirm(request, uidb64=None, token=None):
     return password_reset_confirm(request, template_name='reset_confirm.html',
                                   uidb64=uidb64, token=token, post_reset_redirect=reverse('success2'))
 
-
+@gzip_page
 def success2(request):
     return render(request, "success2.html")
 
