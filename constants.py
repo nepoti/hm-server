@@ -37,4 +37,4 @@ S3_URL_EXPIRATION_TIME = 3600
 
 # Validation regex
 REGEX_USERNAME = "^([a-zA-Z0-9_@\+\.\-]{1,30})$"
-REGEX_EMAIL = "^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$"
+REGEX_EMAIL = "^[a-zA-Z0-9_\-!\$&\*\-=\^`\|~%'\+\/\?_{}.]*@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,6}$"

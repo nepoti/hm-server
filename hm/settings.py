@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'social',
     'djcelery',
     'error',
+    'watson',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -63,7 +64,7 @@ ROOT_URLCONF = 'hm.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['/home/hm/auth/reset/templates/'],
+        'DIRS': ['/home/hm/auth/templates/'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -116,12 +117,13 @@ APPEND_SLASH = False
 STATIC_URL = '/static/'
 
 if DEBUG:
-    EMAIL_HOST = 'smtp.yandex.ru'
-    EMAIL_PORT = 587
-    EMAIL_HOST_USER = 'devtest1997@yandex.ru'
-    EMAIL_HOST_PASSWORD = 'rootrootroot'
+    EMAIL_HOST = 'smtp.mail.ru'
+    EMAIL_PORT = 2525
+    EMAIL_HOST_USER = 'noreply@thehealth.me'
+    EMAIL_HOST_PASSWORD = '8u5{CdFlCQsb'
     EMAIL_USE_TLS = True
-    DEFAULT_FROM_EMAIL = 'devtest1997@yandex.ru'
+    DEFAULT_FROM_EMAIL = 'noreply@thehealth.me'
+    SERVER_EMAIL = 'noreply@thehealth.me'
 
 
 # Celery

@@ -7,5 +7,7 @@ urlpatterns = [
     url(r'^login$', views.login, name='login'),
     url(r'^logout$', views.logout, name='logout'),
     url(r'^edit$', views.edit, name='edit'),
-    url(r'^reset/', include('auth.reset.urls')),
+    url(r'^restore$', views.restore, name='restore'),
+    url(r'^restore/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$', views.restore_confirm, name='password_reset_confirm'),
+    url(r'^success2/$', views.success2, name='success2'),
 ]

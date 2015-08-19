@@ -103,3 +103,33 @@ def edit(request):
         user = authenticate(username=request.user.username, password=new_password)
         auth_login(request, user)
     return status_ok
+
+
+from django.contrib.auth.views import password_reset_confirm
+from django.core.urlresolvers import reverse
+from django.shortcuts import render
+from social.tasks import send_reset_mail
+
+
+@csrf_exempt
+@check_method('POST')
+@check_headers_version
+def restore(request):
+    email = request.POST.get('email', None)
+    if email is None:
+        raise Http404
+    if not match(c.REGEX_EMAIL, email):
+        return email_not_valid
+    send_reset_mail.delay(email)
+    return status_ok
+
+
+def restore_confirm(request, uidb64=None, token=None):
+    return password_reset_confirm(request, template_name='reset_confirm.html',
+                                  uidb64=uidb64, token=token, post_reset_redirect=reverse('success2'))
+
+
+def success2(request):
+    return render(request, "success2.html")
+
+
