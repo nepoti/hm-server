@@ -38,11 +38,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-    #    'tokenapi',
     'hm',
     'auth',
     'user',
-    'social',
+    'djcelery',
+    'error',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -54,6 +54,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'hm.middleware.LoggingMiddleware'
 )
 
 ROOT_URLCONF = 'hm.urls'
@@ -61,7 +62,7 @@ ROOT_URLCONF = 'hm.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['/home/hm/auth/reset/templates/'],
+        'DIRS': ['/home/hm/auth/templates/'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -112,11 +113,54 @@ APPEND_SLASH = False
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static')
 
 if DEBUG:
-    EMAIL_HOST = 'smtp.yandex.ru'
-    EMAIL_PORT = 587
-    EMAIL_HOST_USER = 'devtest1997@yandex.ru'
-    EMAIL_HOST_PASSWORD = 'rootrootroot'
+    EMAIL_HOST = 'smtp.mail.ru'
+    EMAIL_PORT = 2525
+    EMAIL_HOST_USER = 'noreply@thehealth.me'
+    EMAIL_HOST_PASSWORD = '8u5{CdFlCQsb'
     EMAIL_USE_TLS = True
-    DEFAULT_FROM_EMAIL = 'devtest1997@yandex.ru'
+    DEFAULT_FROM_EMAIL = 'noreply@thehealth.me'
+    SERVER_EMAIL = 'noreply@thehealth.me'
+
+
+# Celery
+import djcelery
+djcelery.setup_loader()
+
+BROKER_URL = 'amqp://root:root@localhost:5672/hm'
+CELERY_SEND_TASK_ERROR_EMAILS = False  # default = True
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/home/django.log',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': '/home/whoosh_index',
+    },
+}
+

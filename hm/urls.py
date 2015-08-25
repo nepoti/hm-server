@@ -20,5 +20,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^auth/', include('auth.urls')),
     url(r'^user/', include('user.urls')),
-    url(r'^post/', include('post.urls')),
+    url(r'^error/', include('error.urls')),
 ]
