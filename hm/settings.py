@@ -41,10 +41,8 @@ INSTALLED_APPS = (
     'hm',
     'auth',
     'user',
-    'social',
     'djcelery',
     'error',
-    'watson',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -157,6 +155,12 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+    },
+}
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': '/home/whoosh_index',
     },
 }
 

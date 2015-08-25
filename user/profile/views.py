@@ -1,5 +1,4 @@
 from django.http import Http404
-from django.views.decorators.csrf import csrf_exempt
 from response.templates import ok_response, invalid_data
 from response.decorators import check_method_auth, check_headers_version
 from user.models import UserProfile

@@ -19,6 +19,9 @@ class UserProfile(models.Model):
     about = models.CharField(blank=True, default=u'',  max_length=100)
     achievements = models.TextField(default=u'{}')
 
+    def __iter__(self):
+        return [self.user, self.name]
+
     def __unicode__(self):
         return self.name
 
