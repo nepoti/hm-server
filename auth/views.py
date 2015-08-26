@@ -7,10 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from re import match
 from response.templates import username_not_valid, username_already_exist
 from response.templates import email_not_valid, email_already_exist
-from response.templates import auth_error, user_not_active, task_error, invalid_data, status_ok
+from response.templates import auth_error, user_not_active, task_error, status_ok
 from response.decorators import check_method, check_method_auth, check_headers_version
-from user.models import UserProfile
-from json import loads
 import constants as c
 from django.views.decorators.gzip import gzip_page
 
@@ -19,24 +17,36 @@ from django.views.decorators.gzip import gzip_page
 @check_method('POST')
 @check_headers_version
 def register(request):
-    username = request.POST.get('username', None)
+    phone = request.POST.get('phone', None)
     password = request.POST.get('password', None)
     email = request.POST.get('email', None)
-    if username is None or password is None or email is None:
+    if phone is None or password is None or email is None:
         raise Http404
-    if not match(c.REGEX_USERNAME, username):
+    if not c.is_valid_phone(phone):
         return username_not_valid
-    if User.objects.filter(username=username).exists():
+    if User.objects.filter(username=phone).exists():
         return username_already_exist
     if not match(c.REGEX_EMAIL, email):
         return email_not_valid
     if User.objects.filter(email=email).exists():
         return email_already_exist
-    user = User.objects.create_user(username, email, password)
-    user_profile = UserProfile.objects.create(user=user, name=user.username)
-    if user is None or user_profile is None:
+    user = User.objects.create_user(phone, email, password)
+    if user is None:
         return task_error
     return status_ok
+
+
+def login_user(username=None, password=None):
+        if '@' in username:
+            kwargs = {'email': username}
+        else:
+            kwargs = {'username': username}
+        try:
+            user = User.objects.get(**kwargs)
+            if user.check_password(password):
+                return user
+        except User.DoesNotExist:
+            return None
 
 
 @csrf_exempt
@@ -54,9 +64,10 @@ def login(request):
     password = request.POST.get('password', None)
     if username is None or password is None:
         raise Http404
-    user = authenticate(username=username, password=password)
+    user = login_user(username=username, password=password)
     if user is not None:
         if user.is_active:
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             auth_login(request, user)
             return status_ok
         else:  # disabled
@@ -109,7 +120,7 @@ def edit(request):
 from django.contrib.auth.views import password_reset_confirm
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
-from social.tasks import send_reset_mail
+from tasks.tasks import send_reset_mail
 
 
 @csrf_exempt

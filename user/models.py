@@ -1,23 +1,22 @@
 from django.db import models
+from django.db.models.signals import post_save
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField
 from response.templates import task_error, invalid_data
-from response.templates import ok_response, error_response, status_ok
-from social.tasks import crop_userprofile_image
+from response.templates import ok_response, error_response
 from datetime import date
 import constants as c
 
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
-    name = models.CharField(max_length=30)
-    profile_image = ArrayField(models.URLField(default=''), size=2, default=['', ''])
+    name = models.CharField(max_length=30, default=u'')
     gender = models.CharField(blank=True, default=u'', max_length=20)
     country = models.CharField(blank=True, default=u'', max_length=50)
     city = models.CharField(blank=True, default=u'', max_length=200)
     birthday = models.DateField(blank=True, null=True)
-    about = models.CharField(blank=True, default=u'',  max_length=100)
-    achievements = models.TextField(default=u'{}')
+    height = models.FloatField(blank=True, default=0)
+    weight = models.FloatField(blank=True, default=0)
+    blood = models.IntegerField(blank=True, default=0)
 
     def __iter__(self):
         return [self.user, self.name]
@@ -27,18 +26,17 @@ class UserProfile(models.Model):
 
     def get_info(self):
         if not self.user.is_active:
-            return [{'id': self.id, 'name': self.name, 'username': self.user.username, 'is_active': False}]
-        return [{'id': self.id, 'name': self.name, 'profile_image': self.profile_image, 'gender': self.gender,
-                'country': self.country, 'city': self.city, 'birthday': self.birthday, 'about': self.about,
-                 'achievements': self.achievements, 'username': self.user.username, 'is_active': True,
-                 'followers': self.followers.count(), 'following': self.following.count(), 'posts': self.posts.count()}]
+            return invalid_data
+        return ok_response([{'name': self.name, 'gender': self.gender, 'birthday': self.birthday,
+                             'country': self.country, 'city': self.city,
+                             'height': self.height, 'weight': self.weight, 'blood': self.blood
+                             }])
 
     def set_info(self, data):
         if type(data) is not dict:
             return task_error
         results = {}
         error = False
-        add_crop_task = False
         for key in data:
             if key in c.UserProfile_ALLOWED_KEYS and type(key) is unicode:
                 if type(data[key]) is not unicode:
@@ -46,26 +44,32 @@ class UserProfile(models.Model):
                 elif len(data[key]) > c.UserProfile_ALLOWED_KEYS[key]:
                     results[key] = False
                 else:
-                    if key == 'profile_image':
-                        url_start = 'https://' + c.S3_BUCKET + '.' + c.S3_HOST + '/'
-                        if data[key].startswith(url_start) and len(data[key]) == len(url_start) + 64 + 4:
-                            self.profile_image[1] = data[key]
-                            add_crop_task = data[key]
-                            results[key] = True
-                        else:
-                            results[key] = False
-                    else:
-                        setattr(self, key, data[key])
-                        results[key] = True
+                    setattr(self, key, data[key])
+                    results[key] = True
             elif key == 'birthday':
                 results[key] = self.set_birthday(data[key])
+            elif key == 'height' or key == 'weight':
+                try:
+                    t = float(data[key])
+                    setattr(self, key, t)
+                    results[key] = True
+                except:
+                    results[key] = False
+            elif key == 'blood':
+                try:
+                    t = int(data[key])
+                    if t not in c.UserProfile_BLOOD_CHOICES:
+                        results[key] = False
+                    else:
+                        setattr(self, key, t)
+                        results[key] = True
+                except:
+                    results[key] = False
             else:
                 results[key] = False
             if not results[key]:
                 error = True
         self.save()
-        if add_crop_task:
-            crop_userprofile_image.delay(self.id)
         if error:
             return error_response(50, [results])
         return ok_response([results])
@@ -86,91 +90,9 @@ class UserProfile(models.Model):
         self.birthday = obj
         return True
 
-    def follow_add(self, follow_id):
-        try:
-            follow_id = int(follow_id)
-            obj = UserProfile.objects.filter(id=follow_id)[0]
-        except:
-            return invalid_data
-        if self == obj:
-            return invalid_data
-        if not Follow.objects.filter(following=obj, follower=self).exists():
-            follow_obj = Follow(following=obj, follower=self)
-            follow_obj.save()
-        return status_ok
 
-    def follow_remove(self, follow_id):
-        try:
-            follow_id = int(follow_id)
-            obj = UserProfile.objects.filter(id=follow_id)[0]
-        except:
-            return invalid_data
-        if self == obj:
-            return invalid_data
-        Follow.objects.filter(following=obj, follower=self).delete()
-        return status_ok
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
 
-    def follower_remove(self, follower_id):
-        try:
-            follower_id = int(follower_id)
-            obj = UserProfile.objects.filter(id=follower_id)[0]
-        except:
-            return invalid_data
-        if self == obj:
-            return invalid_data
-        Follow.objects.filter(following=self, follower=obj).delete()
-        return status_ok
-
-    def get_posts(self, offset=0, limit=c.REQUEST_MAX_POSTS):
-        count = self.posts.count()
-        response = {'limit': limit, 'offset': offset, 'count': count}
-        start = offset
-        end = start+limit
-        if start >= count:
-            response['data'] = []
-            return ok_response([response])
-        queryset = self.posts.all()[start:end]
-        response['data'] = list([{'id': post.id, 'timestamp': post.timestamp, 'author': post.author.id,
-                                  'text': post.text, 'photos': post.photos, 'locations': post.locations,
-                                  'likes': post.likes.count(), 'comments': post.comments.count()}
-                                 for post in queryset])
-        return ok_response([response])
-
-    def get_followers(self, offset=0, limit=c.REQUEST_MAX_FOLLOWERS):
-        count = self.followers.count()
-        response = {'limit': limit, 'offset': offset, 'count': count}
-        start = offset
-        end = start+limit
-        if start >= count:
-            response['data'] = []
-            return ok_response([response])
-        queryset = self.followers.all()[start:end].values_list(
-            'follower__id', 'follower__name', 'follower__profile_image', 'follower__user__username')
-        response['data'] = list([{'id': user[0],
-                                  'name': user[1],
-                                  'profile_image': user[2],
-                                  'username': user[3]}
-                                 for user in queryset])
-        return ok_response([response])
-
-    def get_following(self, offset=0, limit=c.REQUEST_MAX_FOLLOWING):
-        count = self.following.count()
-        response = {'limit': limit, 'offset': offset, 'count': count}
-        start = offset
-        end = start+limit
-        if start >= count:
-            response['data'] = []
-            return ok_response([response])
-        queryset = self.following.all()[start:end].values_list(
-            'following__id', 'following__name', 'following__profile_image', 'following__user__username')
-        response['data'] = list([{'id': user[0],
-                                  'name': user[1],
-                                  'profile_image': user[2],
-                                  'username': user[3]}
-                                 for user in queryset])
-        return ok_response([response])
-
-
-class Follow(models.Model):
-    following = models.ForeignKey(UserProfile, related_name='followers')
-    follower = models.ForeignKey(UserProfile, related_name='following')
+post_save.connect(create_user_profile, sender=User)

@@ -1,29 +1,14 @@
 from django.http import Http404
-from response.templates import ok_response, invalid_data
-from response.decorators import check_method_auth, check_headers_version
-from user.models import UserProfile
+from response.templates import invalid_data
+from response.decorators import check_methods_auth, check_headers_version
 from json import loads
 from django.views.decorators.gzip import gzip_page
 
 
-@check_method_auth('POST')
-@check_headers_version
-@gzip_page
 def read(request):
-    user_id = request.POST.get('id', None)
-    try:
-        if user_id:
-            user_id = int(user_id)
-            return ok_response(UserProfile.objects.filter(id=user_id)[0].get_info())
-        else:
-            user_id = request.user.id
-            return ok_response(UserProfile.objects.filter(user_id=user_id)[0].get_info())
-    except:
-        return invalid_data
+    return request.user.userprofile.get_info()
 
 
-@check_method_auth('POST')
-@check_headers_version
 def update(request):
     data = request.POST.get('data', None)
     if data is None:
@@ -32,4 +17,16 @@ def update(request):
         data = loads(data)
     except:
         return invalid_data
-    return UserProfile.objects.filter(user_id=request.user.id)[0].set_info(data)
+    return request.user.userprofile.set_info(data)
+
+
+@check_methods_auth(['GET', 'POST'])
+@check_headers_version
+@gzip_page
+def profile(request):
+    if request.method == 'GET':
+        return read(request)
+    elif request.method == 'POST':
+        return update(request)
+    else:
+        raise Http404
